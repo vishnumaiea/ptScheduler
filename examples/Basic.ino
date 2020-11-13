@@ -17,7 +17,7 @@
 //defines
 
 #define LED1 LED_BUILTIN
-#define LED2 D12
+#define LED2 12
 
 //=======================================================================//
 //globals
