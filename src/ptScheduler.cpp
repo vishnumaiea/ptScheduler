@@ -7,16 +7,16 @@
 // periodic tasks for Arduino without using traditional NOP delay routines.
 
 // Author : Vishnu Mohanan (@vishnumaiea)
-// Version : 0.1
+// Version : 0.0.2
 // License : MIT
 // Repo : https://github.com/vishnumaiea/ptScheduler
 
-// Last modified : +05:30 10:48:05 PM 13-11-2020, Friday
+// Last modified : +05:30 12:15:41 PM 14-11-2020, Saturday
 
 //=======================================================================//
 //includes
 
-#include "ptScheduler_VMA.h"
+#include "ptScheduler.h"
 
 //=======================================================================//
 //constructor

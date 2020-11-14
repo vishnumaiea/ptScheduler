@@ -7,11 +7,28 @@
 // periodic tasks for Arduino without using traditional NOP delay routines.
 
 // Author : Vishnu Mohanan (@vishnumaiea)
-// Version : 0.1
+// Version : 0.0.2
 // License : MIT
 // Repo : https://github.com/vishnumaiea/ptScheduler
 
-// Last modified : +05:30 10:48:05 PM 13-11-2020, Friday
+// Last modified : +05:30 12:15:34 PM 14-11-2020, Saturday
+
+//=======================================================================//
+//description
+
+//This is a basic usage example of ptScheduler. It creates four tasks.
+//Two tasks, sayHello and sayName simply print to the serial monitor at
+//specified intervals. The other two tasks, basicBlink and multiBlink
+//blinks two LEDs. The basicBlink blinks an LED every second indefinitely.
+//The multiBlink blinks the LED for three times in a burst manner. It is
+//written to stop after three blinks. But it is reactivated again to blink
+//every three seconds. The multiBlink is added as a function you can invoke
+//from the loop function.
+
+//=======================================================================//
+//includes
+
+#include "ptScheduler.h"
 
 //=======================================================================//
 //defines
@@ -28,7 +45,7 @@ ptScheduler sayName = ptScheduler(-3000);
 ptScheduler basicBlink = ptScheduler(1000);
 ptScheduler multiBlink = ptScheduler(100);
 
-uint8_t ledOn = false;
+uint8_t ledOn = false;  //a var to toggle the LED state
 
 //=======================================================================//
 
@@ -81,9 +98,9 @@ void blinker() {
       digitalWrite(LED2, LOW);
     }
 
-    if (blinkLED.taskCounter == 6) {
-      blinkLED.deactivate();
-      blinkLED.taskCounter = 0;
+    if (multiBlink.taskCounter == 6) {
+      multiBlink.deactivate();
+      multiBlink.taskCounter = 0;
       digitalWrite(LED2, LOW);
     }
   }
