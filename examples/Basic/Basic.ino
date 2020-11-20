@@ -39,9 +39,9 @@
 //=======================================================================//
 //globals
 
+//create tasks
 ptScheduler sayHello = ptScheduler(1000);
 ptScheduler sayName = ptScheduler(-3000);
-
 ptScheduler basicBlink = ptScheduler(1000);
 ptScheduler multiBlink = ptScheduler(100);
 
@@ -72,7 +72,7 @@ void loop() {
   
   //toggles LED every second
   if (basicBlink.call()) {
-    digitalWrite (LED1, !digitalRead(LED1));
+    digitalWrite (LED2, !digitalRead(LED2));
   }
   
   //task as a function
@@ -80,28 +80,30 @@ void loop() {
 }
 
 //=======================================================================//
+//blinks an LED three times when activated and stops
+//activate again to blink
 
 void blinker() {
   if (multiBlink.call()) {
-    if (multiBlink.taskCounter == 1) {
+    if (multiBlink.taskCounter == 1) {  //task counter starts at 1
       ledOn = true;
     }
     else {
-      ledOn = !ledOn;
+      ledOn = !ledOn; //toggle state
     }
 
     if (ledOn) {
-      digitalWrite (LED2, HIGH);
+      digitalWrite (LED1, HIGH);
     }
 
     else {
-      digitalWrite(LED2, LOW);
+      digitalWrite(LED1, LOW);
     }
 
-    if (multiBlink.taskCounter == 6) {
+    if (multiBlink.taskCounter == 6) {  //it requires 6 intervals for 3 blinks
       multiBlink.deactivate();
-      multiBlink.taskCounter = 0;
-      digitalWrite(LED2, LOW);
+      multiBlink.taskCounter = 0; //reset task counter
+      digitalWrite(LED1, LOW);  //bring the LED to idle state
     }
   }
 }

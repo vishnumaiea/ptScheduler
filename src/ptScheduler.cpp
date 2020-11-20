@@ -23,6 +23,7 @@
 
 ptScheduler::ptScheduler(int64_t timeValue = 0) {
   interval = timeValue;
+  interval_ = timeValue;
   activated = true;
 }
 
@@ -45,7 +46,7 @@ bool ptScheduler::call() {
       entry = millis();
       started = true;
       running = false;
-      suspended = true;
+      dormant = true;
       ended = false;
       return false;
     }
@@ -57,13 +58,13 @@ bool ptScheduler::call() {
 
       if (activated) {
         running = true;
-        suspended = false;
+        dormant = false;
         taskCounter++;
         return true;
       }
       else {
         running = false;
-        suspended = true;
+        dormant = true;
         return false;
       }
     }
@@ -74,7 +75,7 @@ bool ptScheduler::call() {
     if (elapsed >= interval) {
       started = false;
       running = false;
-      suspended = false;
+      dormant = false;
       ended = true;
       exit = entry + elapsed;
       return false;
@@ -83,7 +84,7 @@ bool ptScheduler::call() {
       // started = true;
       // ended = false;
       running = false;
-      suspended = true;
+      dormant = true;
       return false;
     }
   }
@@ -99,11 +100,22 @@ void ptScheduler::activate() {
   activated = true;
 }
 
+void ptScheduler::suspend() {
+  activated = false;
+}
+
 //=======================================================================//
 //deactivates a task.
 
 void ptScheduler::deactivate() {
   activated = false;
+  taskCounter = 0;
+  intervalCounter = 0;
+  interval = interval_;
+  entry = 0;
+  // exit = 0;
+  // elapsed = 0;
+  // residue = 0;
 }
 
 //=======================================================================//
@@ -116,6 +128,7 @@ void ptScheduler::deactivate() {
 
 void ptScheduler::setInterval(int64_t timeValue) {
   interval = timeValue;
+  interval_ = timeValue;
 }
 
 //=======================================================================//
