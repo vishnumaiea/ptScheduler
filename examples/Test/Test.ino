@@ -11,19 +11,12 @@
 // License : MIT
 // Repo : https://github.com/vishnumaiea/ptScheduler
 
-// Last modified : +05:30 12:17:54 AM 29-11-2020, Sunday
+// Last modified : +05:30 12:17:16 AM 29-11-2020, Sunday
 
 //=======================================================================//
 //description
 
-//This is a basic usage example of ptScheduler. It creates four tasks.
-//Two tasks, sayHello and sayName simply print to the serial monitor at
-//specified intervals. The other two tasks, basicBlink and multiBlink
-//blinks two LEDs. The basicBlink blinks an LED every second indefinitely.
-//The multiBlink blinks the LED for three times in a burst manner. It is
-//written to stop after three blinks. But it is reactivated again to blink
-//every three seconds. The multiBlink is added as a function you can invoke
-//from the loop function.
+//This is the sketch I use to test the library.
 
 //=======================================================================//
 //includes
@@ -44,6 +37,8 @@ ptScheduler sayHello = ptScheduler(1000);
 ptScheduler sayName = ptScheduler(-3000);
 ptScheduler basicBlink = ptScheduler(1000);
 ptScheduler multiBlink = ptScheduler(100);
+ptScheduler oneshot = ptScheduler(3000);
+ptScheduler plot = ptScheduler(100);
 
 uint8_t ledOn = false;  //a var to toggle the LED state
 
@@ -53,26 +48,46 @@ void setup() {
   Serial.begin(9600);
   pinMode(LED1, OUTPUT);
   pinMode(LED2, OUTPUT);
-  Serial.print("\n-- ptScheduler --\n\n");
+  // Serial.print("\n-- ptScheduler --\n\n");
+
+  // oneshot.setSkipInterval(4);
+  // oneshot.setSkipTime(1000);
+  oneshot.setSkipIteration(5);
+
 }
 
 //=======================================================================//
 
 void loop() {
-  //executed every second
-  if (sayHello.call()) {
-    Serial.println("Hello World");
-  }
+  // //executed every second
+  // if (sayHello.call()) {
+  //   Serial.println("Hello World");
+  // }
   
-  //skips first time and executed every 3 seconds
-  if (sayName.call()) {
-    Serial.println("I am ptScheduler");
-    multiBlink.activate();
-  }
+  // //skips first time and executed every 3 seconds
+  // if (sayName.call()) {
+  //   Serial.println("I am ptScheduler");
+  //   multiBlink.activate();
+  // }
   
-  //toggles LED every second
-  if (basicBlink.call()) {
-    digitalWrite (LED2, !digitalRead(LED2));
+  // //toggles LED every second
+  // if (basicBlink.call()) {
+  //   digitalWrite (LED2, !digitalRead(LED2));
+  // }
+
+  if (oneshot.call()) {
+    Serial.println("3");
+
+    if ((oneshot.intervalCounter >= 5) && (oneshot.intervalCounter <= 10)) {
+      oneshot.suspend();
+    }
+  }
+  else if (plot.call()) {
+    Serial.println("0");
+
+    if (oneshot.intervalCounter > 10) {
+      oneshot.resume();
+    }
   }
   
   //task as a function

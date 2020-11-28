@@ -1,7 +1,7 @@
 {
     "name": "ptScheduler",
     "keywords": "timer, scheduler, tasks, delay",
-    "description": "A small Arduino library for writing non-blocking periodic tasks without using traditional NOP delay routines.",
+    "description": "A small Arduino library for writing non-blocking periodic tasks without using ordinary NOP delay routines.",
     "repository":
     {
         "type": "git",
@@ -13,7 +13,7 @@
         "url": "https://github.com/vishnumaiea",
         "maintainer": true
     },
-    "version": "0.0.2",
+    "version": "0.0.3",
     "license": "MIT",
     "frameworks": "arduino",
     "platforms": "*"
