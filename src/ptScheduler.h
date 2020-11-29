@@ -21,6 +21,7 @@
 //=======================================================================//
 //defines
 
+//task execution modes
 #define PT_MODE0    0
 #define PT_MODE1    1   //Periodic Oneshot
 #define PT_MODE2    2   //Iterated Oneshot
@@ -32,6 +33,12 @@
 #define PT_MODE8    8
 #define PT_MODE9    9
 
+//task sleep modes
+#define PT_SLEEP_MODE1     1    //self-deactivate mode
+#define PT_SLEEP_MODE2     2    //self-suspend mode
+
+typedef int64_t time_ms_t;  //time in milliseconds
+
 //=======================================================================//
 //main class
 
@@ -39,15 +46,21 @@ class ptScheduler {
   private :
     
   public :
-    int64_t entryTime = 0;  //the entry point of a task, returned by millis()
-    int64_t exitTime = 0; //the exit point of a tast, returned by millis()
-    int64_t elapsedTime = 0;  //elapsed time since the last task execution
-    int64_t residue = 0;
-    int64_t interval = 0; //the interval at which the task will be called once 
-    int64_t _interval = 0; //backup value of the interval to preserve sign
+    time_ms_t entryTime = 0;  //the entry point of a task, returned by millis()
+    time_ms_t exitTime = 0; //the exit point of a tast, returned by millis()
+    time_ms_t elapsedTime = 0;  //elapsed time since the last task execution
+    time_ms_t residue = 0;
+    time_ms_t interval_s = 0; //backup signed value of first interval
     uint64_t intervalCounter = 0; //how many intervals has been passed
-    uint64_t taskCounter = 0; //how many times the task has been executed
-    uint8_t mode = PT_MODE1;
+    uint64_t executionCounter = 0; //how many times the task has been executed
+    uint64_t iterationCounter = 0; //how many times iteration set has been executed
+    uint32_t iterations = 0;  //how many times a task has to be executed for each activation
+    uint8_t taskMode = PT_MODE1;
+    uint8_t sleepMode = PT_SLEEP_MODE1;
+
+    time_ms_t* intervalList;
+    uint8_t intervalCount;
+
     bool activated = true;  //whether a task is allowed to run or not
     bool taskStarted = false; //whether a task has started an execution cycle
     bool cycleStarted = false; //whether a task has started a time cycle
@@ -55,15 +68,19 @@ class ptScheduler {
     bool suspended = false; //whether a task is prevented from running until further activation
     bool ended = true;  //end of an execution cycle
     bool running = false; //a task is running
+    bool inputError = false; //
 
     bool skipIntervalSet = false;
     bool skipIterationSet = false;
     bool skipTimeSet = false;
-    int64_t skipInterval = 0;
-    int64_t skipIteration = 0;
-    int64_t skipTime = 0;
+    time_ms_t skipInterval = 0;
+    time_ms_t skipIteration = 0;
+    time_ms_t skipTime = 0;
     
-    ptScheduler (int64_t timeValue); //sets the initial interval for the task
+    ptScheduler (time_ms_t interval_1); //sets the initial interval for the task
+    ptScheduler (uint8_t _mode, time_ms_t interval_1); //sets the initial interval for the task
+    ptScheduler (uint8_t _mode, time_ms_t interval_1, time_ms_t interval_2); //sets the initial interval for the task
+    ptScheduler (uint8_t _mode, time_ms_t* listPtr, uint8_t listLength); //sets the initial interval for the task
     ~ptScheduler();
     void reset();
     void activate();  //activating a task run at each intervals
@@ -71,11 +88,14 @@ class ptScheduler {
     void suspend();  //prevent a task from running at each intervals
     void resume();  //resume task execution
     bool call();  //the task invokation, determines whether a task should be run or not
-    void setInterval (int64_t timeValue);  //dynamically set task interval
+    bool setInterval (time_ms_t value);  //dynamically set task interval
+    bool setInterval (time_ms_t value_1, time_ms_t value_2);
+    bool setIteration (int32_t value);
     bool setSkipInterval (uint32_t value);
     bool setSkipIteration (uint32_t value);
-    bool setSkipTime (int64_t timeValue);
-    void setMode (uint8_t _mode);
+    bool setSkipTime (time_ms_t value);
+    bool setTaskMode (uint8_t mode);
+    bool setSleepMode (uint8_t mode);
 };
 
 //=======================================================================//

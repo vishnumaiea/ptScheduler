@@ -21,11 +21,128 @@
 //=======================================================================//
 //constructor
 
-ptScheduler::ptScheduler(int64_t timeValue = 0) {
-  interval = timeValue;
-  _interval = timeValue;
+ptScheduler::ptScheduler (time_ms_t interval_1) {
+  intervalList = new time_ms_t(1);  //create a new list
+  intervalList[0] = interval_1;
+  interval_s = interval_1;
+  intervalCount = 1;
   activated = true;
-  mode = PT_MODE1;
+
+  taskMode = PT_MODE1;  //default mode
+  sleepMode = PT_SLEEP_MODE1;
+}
+
+//=======================================================================//
+
+ptScheduler::ptScheduler (uint8_t mode, time_ms_t interval_1) {
+  intervalList = new time_ms_t(1);  //create a new list
+  intervalList[0] = interval_1;
+  interval_s = interval_1;
+  intervalCount = 1;
+  activated = true;
+  sleepMode = PT_SLEEP_MODE1;
+
+  switch (taskMode) {
+    case PT_MODE1:  //for a single interval, only these modes are supported
+    case PT_MODE2:
+    case PT_MODE3:
+    case PT_MODE4:
+      taskMode = mode;
+      break;
+    
+    default:
+      taskMode = PT_MODE1;
+      break;
+  }
+}
+
+//=======================================================================//
+
+ptScheduler::ptScheduler (uint8_t mode, time_ms_t interval_1, time_ms_t interval_2) {
+  intervalList = new time_ms_t(2);  //create a new list
+  intervalList[0] = interval_1;
+  intervalList[1] = interval_2;
+  interval_s = interval_1;
+  intervalCount = 2;
+  activated = true;
+  sleepMode = PT_SLEEP_MODE1;
+
+  switch (taskMode) {
+    case PT_MODE1:
+    case PT_MODE2:
+    case PT_MODE3:
+    case PT_MODE4:
+    case PT_MODE5:
+    case PT_MODE6:
+      taskMode = mode;
+      break;
+    
+    default:
+      taskMode = PT_MODE1;
+      break;
+  }
+}
+
+//=======================================================================//
+
+ptScheduler::ptScheduler (uint8_t mode, time_ms_t* listPtr, uint8_t listLength) {
+  if ((listPtr != nullptr) && (listLength != 0)) {
+    intervalList = listPtr;
+    intervalCount = listLength;
+
+    interval_s = intervalList[0]; //save the signed value
+
+    for (uint8_t i=1; i < intervalCount; i++) {
+      intervalList[i] = abs(intervalList[i]); //remove the sign of all other values
+    }
+
+    activated = true;
+    sleepMode = PT_SLEEP_MODE1;
+    
+    //now we have to determine if the specified mode is possible with the input parameters
+    if (intervalCount == 1) {
+      switch (taskMode) {
+        case PT_MODE1:  //for a single interval, only these modes are supported
+        case PT_MODE2:
+        case PT_MODE3:
+        case PT_MODE4:
+          taskMode = mode;
+          break;
+        
+        default:
+          taskMode = PT_MODE1;
+          break;
+      }
+    }
+
+    else if (intervalCount == 2) {
+      switch (taskMode) {
+        case PT_MODE1:
+        case PT_MODE2:
+        case PT_MODE3:
+        case PT_MODE4:
+        case PT_MODE5:
+        case PT_MODE6:
+          taskMode = mode;
+          break;
+        
+        default:
+          taskMode = PT_MODE1;
+          break;
+      }
+    }
+
+    else {
+      taskMode = PT_MODE1;
+    }
+
+    inputError = false;
+  }
+  else {  //if the input parameters are invalid
+    ptScheduler(1000);
+    inputError = true;
+  }
+  
 }
 
 //=======================================================================//
@@ -37,8 +154,42 @@ ptScheduler::~ptScheduler() {
 
 //=======================================================================//
 
-void ptScheduler::setMode(uint8_t _mode) {
-  mode = _mode;
+bool ptScheduler::setTaskMode (uint8_t mode) {
+  switch (mode) { //check if the input mode is valid
+    case PT_MODE1:
+    case PT_MODE2:
+    case PT_MODE3:
+    case PT_MODE4:
+    case PT_MODE5:
+    case PT_MODE6:
+      taskMode = mode;
+      return true;
+      break;
+    
+    default:
+      taskMode = PT_MODE1;
+      inputError = true;
+      return false;
+      break;
+  }
+}
+
+//=======================================================================//
+
+bool ptScheduler::setSleepMode (uint8_t mode) {
+  switch (mode) { //check if the input mode is valid
+    case PT_SLEEP_MODE1:
+    case PT_SLEEP_MODE2:
+      sleepMode = mode;
+      return true;
+      break;
+    
+    default:
+      sleepMode = PT_SLEEP_MODE1;
+      inputError = true;
+      return false;
+      break;
+  }
 }
 
 //=======================================================================//
@@ -47,8 +198,9 @@ void ptScheduler::setMode(uint8_t _mode) {
 //do not use other blocking delays.
 
 bool ptScheduler::call() {
-  switch (mode) {
+  switch (taskMode) {
     case PT_MODE1:
+    case PT_MODE2:
       if (activated) {
         //if an execution cycle has not started, yet skip for the time set
         if ((!taskStarted) && (skipIntervalSet || skipIntervalSet || skipTimeSet)) {
@@ -70,8 +222,8 @@ bool ptScheduler::call() {
 
         //start a new time cycle
         if (!cycleStarted) { //if a time cycle has not started
-          if (interval < 0) { //if interval is negative,task will be skipped for that time
-            interval = abs(interval); //sign is lost here
+          if (intervalList[0] < 0) { //if interval is negative,task will be skipped for that time
+            intervalList[0] = abs(intervalList[0]); //sign is lost here
             entryTime = millis();
             cycleStarted = true; //time cycle started
             taskStarted = true; //execution cycle started
@@ -84,7 +236,21 @@ bool ptScheduler::call() {
 
             //this is the return point that gives you green signal each time 
             if (!suspended) {
-              taskCounter++;
+              if (iterations > 0) { //if this is an iterated task
+                if (executionCounter == iterations) { //when the specified no. of iterations have been reached
+                  if (sleepMode == PT_SLEEP_MODE1) {
+                    deactivate(); //interval counter will not run in this mode
+                  }
+                  else {
+                    executionCounter = 0;
+                    //this is the self-suspend mode.
+                    //interval counter run and you can resume the task when you need.
+                    suspend();  
+                  }
+                  return false;
+                }
+              }
+              executionCounter++;
               return true;
             }
             else {
@@ -96,7 +262,7 @@ bool ptScheduler::call() {
         //check if a time cycle has elapsed
         else if (cycleStarted) {
           elapsedTime = millis() - entryTime;
-          if (elapsedTime >= interval) {
+          if (elapsedTime >= intervalList[0]) {
             cycleStarted = false; //so that we can start a new time cycle
             exitTime = entryTime + elapsedTime;
             return false;
@@ -112,7 +278,7 @@ bool ptScheduler::call() {
       }
       
       break;
-    
+
     default:
       break;
   }
@@ -157,13 +323,13 @@ void ptScheduler::deactivate() {
   ended = true;
   running = false;
 
-  taskCounter = 0;
+  executionCounter = 0;
   intervalCounter = 0;
   entryTime = 0;
   exitTime = 0;
   elapsedTime = 0;
   residue = 0;
-  interval = _interval; //this will be preserved even if the value was negative
+  intervalList[0] = interval_s; //this will be preserved even if the value was negative
 }
 
 //=======================================================================//
@@ -173,6 +339,25 @@ void ptScheduler::reset() {
   deactivate();
   activate();
 }
+
+//=======================================================================//
+
+bool ptScheduler::setIteration (int32_t value) {
+  switch (taskMode) {
+    case PT_MODE2:
+    case PT_MODE4:
+    case PT_MODE6:
+      iterations = value;
+      return true;
+      break;
+    
+    default:
+      iterations = 0;
+      return false;
+      break;
+  }
+}
+
 //=======================================================================//
 //set the interval at which you want the task to be executed.
 //time is in milliseconds.
@@ -182,9 +367,27 @@ void ptScheduler::reset() {
 //executed at every intervals.
 //input is time in milliseconds.
 
-void ptScheduler::setInterval (int64_t timeValue) {
-  interval = timeValue;
-  _interval = timeValue;
+bool ptScheduler::setInterval (time_ms_t value) {
+  if (intervalCount > 0) {
+    intervalList[0] = value;
+    return true;
+  }
+  else {
+    return false;
+  }
+}
+
+//=======================================================================//
+
+bool ptScheduler::setInterval (time_ms_t value_1, time_ms_t value_2) {
+  if (intervalCount > 1) {
+    intervalList[0] = value_1;
+    intervalList[0] = value_2;
+    return true;
+  }
+  else {
+    return false;
+  }
 }
 
 //=======================================================================//
@@ -200,10 +403,17 @@ bool ptScheduler::setSkipInterval (uint32_t value) {
   skipInterval = value;
   skipIntervalSet = true;
 
-  if (mode == PT_MODE1) {
-    skipTime = skipInterval * abs(interval);
-    skipTimeSet = true;
-    return true;
+  switch (taskMode) {
+    case PT_MODE1:
+    case PT_MODE2:
+    case PT_MODE3:
+    case PT_MODE4:
+    default:
+      skipTime = skipInterval * abs(intervalList[0]);
+      skipTimeSet = true;
+      return true;
+
+      break;
   }
 }
 
@@ -222,10 +432,17 @@ bool ptScheduler::setSkipIteration (uint32_t value) {
   skipIteration = value;
   skipIterationSet = true;
 
-  if (mode == PT_MODE1) {
-    skipTime = skipIteration * abs(interval);
-    skipTimeSet = true;
-    return true;
+  switch (taskMode) {
+    case PT_MODE1:
+    case PT_MODE2:
+    case PT_MODE3:
+    case PT_MODE4:
+    default:
+      skipTime = skipIteration * abs(intervalList[0]);
+      skipTimeSet = true;
+      return true;
+
+      break;
   }
 }
 
@@ -236,8 +453,8 @@ bool ptScheduler::setSkipIteration (uint32_t value) {
 //deactivate or reset it.
 //input is time on milliseconds.
 
-bool ptScheduler::setSkipTime (int64_t timeValue) {
-  skipTime = abs(timeValue);
+bool ptScheduler::setSkipTime (time_ms_t value) {
+  skipTime = abs(value);
   skipTimeSet = true;
   return true;
 }

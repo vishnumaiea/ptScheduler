@@ -85,7 +85,7 @@ void loop() {
 
 void blinker() {
   if (multiBlink.call()) {
-    if (multiBlink.taskCounter == 1) {  //task counter starts at 1
+    if (multiBlink.executionCounter == 1) {  //task counter starts at 1
       ledOn = true;
     }
     else {
@@ -100,9 +100,9 @@ void blinker() {
       digitalWrite(LED1, LOW);
     }
 
-    if (multiBlink.taskCounter == 6) {  //it requires 6 intervals for 3 blinks
+    if (multiBlink.executionCounter == 6) {  //it requires 6 intervals for 3 blinks
       multiBlink.deactivate();
-      multiBlink.taskCounter = 0; //reset task counter
+      multiBlink.executionCounter = 0; //reset task counter
       digitalWrite(LED1, LOW);  //bring the LED to idle state
     }
   }
