@@ -21,6 +21,8 @@
 //=======================================================================//
 //defines
 
+#define debugSerial   Serial
+
 //task execution modes
 #define PT_MODE0    0
 #define PT_MODE1    1   //Periodic Oneshot
@@ -49,33 +51,36 @@ class ptScheduler {
     time_ms_t entryTime = 0;  //the entry point of a task, returned by millis()
     time_ms_t exitTime = 0; //the exit point of a tast, returned by millis()
     time_ms_t elapsedTime = 0;  //elapsed time since the last task execution
-    time_ms_t residue = 0;
-    time_ms_t interval_s = 0; //backup signed value of first interval
+    time_ms_t residualTime = 0;
     uint64_t intervalCounter = 0; //how many intervals has been passed
+    uint64_t sleepIntervalCounter = 0; //how many intervals have been passed after deactivating/suspending the task
     uint64_t executionCounter = 0; //how many times the task has been executed
     uint64_t iterationCounter = 0; //how many times iteration set has been executed
+    
     uint32_t iterations = 0;  //how many times a task has to be executed for each activation
     uint8_t taskMode = PT_MODE1;
     uint8_t sleepMode = PT_SLEEP_MODE1;
-
-    time_ms_t* intervalList;
     uint8_t intervalCount;
+    time_ms_t* intervalList;
+    time_ms_t interval_s = 0; //backup signed value of first interval
+    uint32_t skipInterval = 0;
+    uint32_t skipIteration = 0;
+    time_ms_t skipTime = 0;
 
     bool activated = true;  //whether a task is allowed to run or not
     bool taskStarted = false; //whether a task has started an execution cycle
     bool cycleStarted = false; //whether a task has started a time cycle
     bool dormant = false; //if the task is not in running state
     bool suspended = false; //whether a task is prevented from running until further activation
-    bool ended = true;  //end of an execution cycle
+    bool iterationEnded = true;  //end of an execution cycle
     bool running = false; //a task is running
-    bool inputError = false; //
+    bool runState;
 
+    bool inputError = false;  //if any user input parameters are wrong
     bool skipIntervalSet = false;
     bool skipIterationSet = false;
     bool skipTimeSet = false;
-    time_ms_t skipInterval = 0;
-    time_ms_t skipIteration = 0;
-    time_ms_t skipTime = 0;
+    
     
     ptScheduler (time_ms_t interval_1); //sets the initial interval for the task
     ptScheduler (uint8_t _mode, time_ms_t interval_1); //sets the initial interval for the task
@@ -96,6 +101,7 @@ class ptScheduler {
     bool setSkipTime (time_ms_t value);
     bool setTaskMode (uint8_t mode);
     bool setSleepMode (uint8_t mode);
+    void printStats();
 };
 
 //=======================================================================//

@@ -37,9 +37,12 @@ ptScheduler sayHello = ptScheduler(1000);
 ptScheduler sayName = ptScheduler(-3000);
 ptScheduler basicBlink = ptScheduler(1000);
 ptScheduler multiBlink = ptScheduler(100);
-ptScheduler oneshot = ptScheduler(3000);
-ptScheduler plot = ptScheduler(100);
-ptScheduler iteratedOneshot = ptScheduler(PT_MODE2, 1000);
+ptScheduler plot = ptScheduler(50);
+
+ptScheduler epoTask = ptScheduler(1000);  //equal, periodic, oneshot
+ptScheduler eioTask = ptScheduler(PT_MODE2, 1000);  //equal, iterated, oneshot
+ptScheduler epsTask = ptScheduler(PT_MODE3, 1000);  //equal, periodic, spanning
+ptScheduler eisTask = ptScheduler(PT_MODE4, 1000); //equal, iterated, spanning
 
 uint8_t ledOn = false;  //a var to toggle the LED state
 
@@ -51,11 +54,15 @@ void setup() {
   pinMode(LED2, OUTPUT);
   // Serial.print("\n-- ptScheduler --\n\n");
 
-  // oneshot.setSkipInterval(4);
-  // oneshot.setSkipTime(1000);
-  // oneshot.setSkipIteration(5);
-  iteratedOneshot.setIteration(5);
-  iteratedOneshot.setSleepMode(PT_SLEEP_MODE2);
+  // epoTask.setSkipInterval(4);
+  // epoTask.setSkipTime(1000);
+  // epoTask.setSkipIteration(5);
+
+  // eioTask.setIteration(5);
+  // eioTask.setSleepMode(PT_SLEEP_MODE2);
+
+  eisTask.setIteration(5);
+  eisTask.setSleepMode(PT_SLEEP_MODE2);
 }
 
 //=======================================================================//
@@ -77,31 +84,62 @@ void loop() {
   //   digitalWrite (LED2, !digitalRead(LED2));
   // }
 
-  // if (oneshot.call()) {
+  // //periodic indefinite oneshot task
+  // if (epoTask.call()) {
   //   Serial.println("3");
 
-  //   if ((oneshot.intervalCounter >= 5) && (oneshot.intervalCounter <= 10)) {
-  //     oneshot.suspend();
+  //   if ((epoTask.intervalCounter >= 5) && (epoTask.intervalCounter <= 10)) {
+  //     epoTask.suspend();
   //   }
   // }
   // else if (plot.call()) {
   //   Serial.println("0");
 
-  //   if (oneshot.intervalCounter > 10) {
-  //     oneshot.resume();
+  //   if (epoTask.intervalCounter > 10) {
+  //     epoTask.resume();
   //   }
   // }
 
-  if (iteratedOneshot.call()) {
-    Serial.println("3");
-  }
-  else if (plot.call()) {
-    Serial.println("0");
-    if (iteratedOneshot.intervalCounter == 10) {
-      iteratedOneshot.resume();
+  // //equal interval, iterated and oneshot task
+  // if (eioTask.call()) {
+  //   Serial.println("3");
+  // }
+  // else if (plot.call()) {
+  //   Serial.println("0");
+  //   if (eioTask.intervalCounter == 10) {
+  //     eioTask.resume();
+  //   }
+  // }
+  
+  // //equal interval, periodic indefinite and spanning task
+  // if (plot.call()) {
+  //   if (epsTask.call()) {
+  //     Serial.println("3");
+  //   }
+  //   else {
+  //     Serial.println("0");
+  //     if (epsTask.intervalCounter == 10) {
+  //       spanningTask.suspend();
+  //     }
+  //     else if (epsTask.intervalCounter > 15) {
+  //       epsTask.resume();
+  //     }
+  //   }
+  // }
+
+  //equal interval, iterated and spanning task
+  if (plot.call()) {
+    if (eisTask.call()) {
+      Serial.println("3");
+    }
+    else {
+      Serial.println("0");
+      if (eisTask.sleepIntervalCounter == 10) {
+        eisTask.resume();
+      }
     }
   }
-  
+
   //task as a function
   blinker();
 }

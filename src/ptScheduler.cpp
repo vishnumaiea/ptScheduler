@@ -199,8 +199,8 @@ bool ptScheduler::setSleepMode (uint8_t mode) {
 
 bool ptScheduler::call() {
   switch (taskMode) {
-    case PT_MODE1:
-    case PT_MODE2:
+    case PT_MODE1:  //periodic oneshot
+    case PT_MODE2:  //iterated oneshot
       if (activated) {
         //if an execution cycle has not started, yet skip for the time set
         if ((!taskStarted) && (skipIntervalSet || skipIntervalSet || skipTimeSet)) {
@@ -245,8 +245,9 @@ bool ptScheduler::call() {
                     executionCounter = 0;
                     //this is the self-suspend mode.
                     //interval counter run and you can resume the task when you need.
-                    suspend();  
+                    suspend();
                   }
+                  iterationEnded = true;
                   return false;
                 }
               }
@@ -279,12 +280,178 @@ bool ptScheduler::call() {
       
       break;
 
+    case PT_MODE3:  //periodic spanning
+    case PT_MODE4:  //iterated spanning
+      if (activated) {
+        //if an execution cycle has not started, yet skip for the time set.
+        if ((!taskStarted) && (skipIntervalSet || skipIntervalSet || skipTimeSet)) {
+          if (entryTime == 0) { //this is one way to find if an exe cycle not started
+            entryTime = millis();
+            return false;
+          }
+          else {
+            elapsedTime = millis() - entryTime;
+
+            if (elapsedTime < skipTime) { //skip time is set when skip time or skip interval are set
+              return false;
+            }
+            else {
+              taskStarted = true;
+              runState = true;
+            }
+          }
+        }   
+
+        //if a cycle has not started yet.
+        //for spanning tasks, this only happens once.
+        if (!cycleStarted) {
+          if (intervalList[0] < 0) {  //if the first interval value is negative
+            intervalList[0] = abs(intervalList[0]); //sign is lost here
+            runState = false;
+            running = false;
+            dormant = true;
+          }
+          else {  //if interval is not negative
+            runState = true;
+            running = true;
+            dormant = false;
+            executionCounter++; //this increments before the interval counter
+          }
+          entryTime = millis();
+          cycleStarted = true;
+          iterationEnded = false;
+          taskStarted = true;
+          // printStats();
+        }
+        else {
+          elapsedTime = millis() - entryTime;
+
+          if (elapsedTime >= intervalList[0]) {
+            intervalCounter++;
+            exitTime = entryTime + elapsedTime;
+            entryTime = millis();
+
+            if (!suspended) {
+              if (iterations > 0) { //if this is an iterated task
+                if (executionCounter == iterations) { //when the specified no. of iterations have been reached
+                  if (sleepMode == PT_SLEEP_MODE1) {
+                    deactivate(); //interval counter will not run in this mode
+                  }
+                  else {
+                    //this is the self-suspend mode.
+                    suspend();
+                  }
+                  //when an iteration has completed
+                  // printStats();
+                  executionCounter = 0; //so that we can start a new iteration
+                  runState = false;
+                  running = false;
+                  dormant = true;
+                  iterationEnded = true;
+                  sleepIntervalCounter = 0;
+                  return false;
+                }
+              }
+
+              //if not an iterated task
+              runState = (runState) ? false : true; //toggle the state
+
+              if (runState) {
+                executionCounter++;
+                running = true;
+                dormant = false;
+              }
+              else {
+                running = false;
+                dormant = true;
+              }
+            }
+            else {  //if suspended
+              // printStats();
+              sleepIntervalCounter++; //time elapsed after iteration is complete
+              return false;
+            }
+          }
+        }
+        return runState;
+      }
+
+      else { //if not activated
+        return false;
+      }
+
     default:
       break;
   }
   
-  
   return false;
+}
+
+//=======================================================================//
+
+void ptScheduler::printStats() {
+  debugSerial.print(F("Interval Count : "));
+  debugSerial.println(intervalCount);
+  debugSerial.print(F("Intervals (ms) : "));
+
+  for (int i=0; i < intervalCount; i++) {
+    debugSerial.print((int32_t) intervalList[i]);
+
+    if (i != (intervalCount-1)) {
+      debugSerial.print(F(", "));
+    }
+    else {
+      debugSerial.println();
+    }
+  }
+    
+  debugSerial.print(F("Task Mode : "));
+  debugSerial.println(taskMode);
+  debugSerial.print(F("Sleep Mode : "));
+  debugSerial.println(sleepMode);
+  debugSerial.print(F("Skip Interval : "));
+  debugSerial.println(skipInterval);
+  debugSerial.print(F("Skip Iteration : "));
+  debugSerial.println(skipIteration);
+  debugSerial.print(F("Skip Time : "));
+  debugSerial.println((int32_t) skipTime);
+  debugSerial.print(F("Iterations : "));
+  debugSerial.println(iterations);
+  debugSerial.print(F("Entry Time : "));
+  debugSerial.println((int32_t) entryTime);
+  debugSerial.print(F("Elapsed Time : "));
+  debugSerial.println((int32_t) elapsedTime);
+  debugSerial.print(F("Exit Time : "));
+  debugSerial.println((int32_t) exitTime);
+  debugSerial.print(F("Residual Time : "));
+  debugSerial.println((int32_t) residualTime);
+  debugSerial.print(F("Interval Counter : "));
+  debugSerial.println((uint32_t)intervalCounter);
+  debugSerial.print(F("Execution Counter : "));
+  debugSerial.println((uint32_t)executionCounter);
+  debugSerial.print(F("Iteration Counter : "));
+  debugSerial.println((uint32_t)iterationCounter);
+  debugSerial.print(F("Activated ? : "));
+  debugSerial.println(activated);
+  debugSerial.print(F("Suspended ? : "));
+  debugSerial.println(suspended);
+  debugSerial.print(F("Task Started ? : "));
+  debugSerial.println(taskStarted);
+  debugSerial.print(F("Cycle Started ? : "));
+  debugSerial.println(cycleStarted);
+  debugSerial.print(F("Dormant ? : "));
+  debugSerial.println(dormant);
+  debugSerial.print(F("Running ? : "));
+  debugSerial.println(running);
+  debugSerial.print(F("Ended ? : "));
+  debugSerial.println(iterationEnded);
+  debugSerial.print(F("Run State : "));
+  debugSerial.println(runState);
+  debugSerial.print(F("Input Error : "));
+  debugSerial.println(inputError);
+  debugSerial.print(F("Iterations : "));
+  debugSerial.println(iterations);
+  debugSerial.println();
 }
 
 //=======================================================================//
@@ -320,15 +487,16 @@ void ptScheduler::deactivate() {
   cycleStarted = false;
   dormant = false;
   suspended = false;
-  ended = true;
+  iterationEnded = true;
   running = false;
 
   executionCounter = 0;
   intervalCounter = 0;
+  sleepIntervalCounter = 0;
   entryTime = 0;
   exitTime = 0;
   elapsedTime = 0;
-  residue = 0;
+  residualTime = 0;
   intervalList[0] = interval_s; //this will be preserved even if the value was negative
 }
 
