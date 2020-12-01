@@ -62,6 +62,7 @@ class ptScheduler {
     uint8_t sleepMode = PT_SLEEP_MODE1;
     uint8_t intervalCount;
     time_ms_t* intervalList;
+    uint8_t intervalIndex = 0;
     time_ms_t interval_s = 0; //backup signed value of first interval
     uint32_t skipInterval = 0;
     uint32_t skipIteration = 0;

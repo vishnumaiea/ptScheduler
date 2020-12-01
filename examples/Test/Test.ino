@@ -32,6 +32,8 @@
 //=======================================================================//
 //globals
 
+time_ms_t intervalArray[] = {2000, 1000, 3000}; 
+
 //create tasks
 ptScheduler sayHello = ptScheduler(1000);
 ptScheduler sayName = ptScheduler(-3000);
@@ -43,6 +45,9 @@ ptScheduler epoTask = ptScheduler(1000);  //equal, periodic, oneshot
 ptScheduler eioTask = ptScheduler(PT_MODE2, 1000);  //equal, iterated, oneshot
 ptScheduler epsTask = ptScheduler(PT_MODE3, 1000);  //equal, periodic, spanning
 ptScheduler eisTask = ptScheduler(PT_MODE4, 1000); //equal, iterated, spanning
+ptScheduler upsTask = ptScheduler(PT_MODE5, 1000, 2000);
+ptScheduler uisTask_1 = ptScheduler(PT_MODE6, 1000, 2000);
+ptScheduler uisTask_2 = ptScheduler(PT_MODE6, intervalArray, 3);
 
 uint8_t ledOn = false;  //a var to toggle the LED state
 
@@ -63,6 +68,12 @@ void setup() {
 
   eisTask.setIteration(5);
   eisTask.setSleepMode(PT_SLEEP_MODE2);
+
+  uisTask_1.setIteration(5);
+  uisTask_1.setSleepMode(PT_SLEEP_MODE2);
+
+  uisTask_2.setIteration(5);
+  uisTask_2.setSleepMode(PT_SLEEP_MODE2);
 }
 
 //=======================================================================//
@@ -127,18 +138,59 @@ void loop() {
   //   }
   // }
 
+  // //equal interval, iterated and spanning task
+  // if (plot.call()) {
+  //   if (eisTask.call()) {
+  //     Serial.println("3");
+  //   }
+  //   else {
+  //     Serial.println("0");
+  //     if (eisTask.sleepIntervalCounter == 10) {
+  //       eisTask.resume();
+  //     }
+  //   }
+  // }
+
+
+  // //equal interval, iterated and spanning task
+  // if (plot.call()) {
+  //   if (upsTask.call()) {
+  //     Serial.println("3");
+  //   }
+  //   else {
+  //     Serial.println("0");
+  //     // if (eisTask.sleepIntervalCounter == 10) {
+  //     //   eisTask.resume();
+  //     // }
+  //   }
+  // }
+
+  // //equal interval, iterated and spanning task
+  // if (plot.call()) {
+  //   if (uisTask_1.call()) {
+  //     Serial.println("3");
+  //   }
+  //   else {
+  //     Serial.println("0");
+  //     // if (eisTask.sleepIntervalCounter == 10) {
+  //     //   eisTask.resume();
+  //     // }
+  //   }
+  // }
+
   //equal interval, iterated and spanning task
   if (plot.call()) {
-    if (eisTask.call()) {
+    if (uisTask_2.call()) {
       Serial.println("3");
     }
     else {
       Serial.println("0");
-      if (eisTask.sleepIntervalCounter == 10) {
-        eisTask.resume();
-      }
+      // if (eisTask.sleepIntervalCounter == 10) {
+      //   eisTask.resume();
+      // }
     }
   }
+
 
   //task as a function
   blinker();

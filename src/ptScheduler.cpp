@@ -61,7 +61,7 @@ ptScheduler::ptScheduler (uint8_t mode, time_ms_t interval_1) {
 ptScheduler::ptScheduler (uint8_t mode, time_ms_t interval_1, time_ms_t interval_2) {
   intervalList = new time_ms_t(2);  //create a new list
   intervalList[0] = interval_1;
-  intervalList[1] = interval_2;
+  intervalList[1] = abs(interval_2);
   interval_s = interval_1;
   intervalCount = 2;
   activated = true;
@@ -115,7 +115,7 @@ ptScheduler::ptScheduler (uint8_t mode, time_ms_t* listPtr, uint8_t listLength) 
       }
     }
 
-    else if (intervalCount == 2) {
+    else {
       switch (taskMode) {
         case PT_MODE1:
         case PT_MODE2:
@@ -130,10 +130,6 @@ ptScheduler::ptScheduler (uint8_t mode, time_ms_t* listPtr, uint8_t listLength) 
           taskMode = PT_MODE1;
           break;
       }
-    }
-
-    else {
-      taskMode = PT_MODE1;
     }
 
     inputError = false;
@@ -242,12 +238,13 @@ bool ptScheduler::call() {
                     deactivate(); //interval counter will not run in this mode
                   }
                   else {
-                    executionCounter = 0;
                     //this is the self-suspend mode.
                     //interval counter run and you can resume the task when you need.
                     suspend();
                   }
+                  executionCounter = 0;
                   iterationEnded = true;
+                  sleepIntervalCounter = 0;
                   return false;
                 }
               }
@@ -255,6 +252,7 @@ bool ptScheduler::call() {
               return true;
             }
             else {
+              sleepIntervalCounter++;
               return false;
             }
           }
@@ -327,6 +325,113 @@ bool ptScheduler::call() {
           elapsedTime = millis() - entryTime;
 
           if (elapsedTime >= intervalList[0]) {
+            intervalCounter++;
+            exitTime = entryTime + elapsedTime;
+            entryTime = millis();
+
+            if (!suspended) {
+              if (iterations > 0) { //if this is an iterated task
+                if (executionCounter == iterations) { //when the specified no. of iterations have been reached
+                  if (sleepMode == PT_SLEEP_MODE1) {
+                    deactivate(); //interval counter will not run in this mode
+                  }
+                  else {
+                    //this is the self-suspend mode.
+                    suspend();
+                  }
+                  //when an iteration has completed
+                  // printStats();
+                  executionCounter = 0; //so that we can start a new iteration
+                  runState = false;
+                  running = false;
+                  dormant = true;
+                  iterationEnded = true;
+                  sleepIntervalCounter = 0;
+                  return false;
+                }
+              }
+
+              //if not an iterated task
+              runState = (runState) ? false : true; //toggle the state
+
+              if (runState) {
+                executionCounter++;
+                running = true;
+                dormant = false;
+              }
+              else {
+                running = false;
+                dormant = true;
+              }
+            }
+            else {  //if suspended
+              // printStats();
+              sleepIntervalCounter++; //time elapsed after iteration is complete
+              return false;
+            }
+          }
+        }
+        return runState;
+      }
+
+      else { //if not activated
+        return false;
+      }
+
+    case PT_MODE5:
+    case PT_MODE6:
+       if (activated) {
+        //if an execution cycle has not started, yet skip for the time set.
+        if ((!taskStarted) && (skipIntervalSet || skipIntervalSet || skipTimeSet)) {
+          if (entryTime == 0) { //this is one way to find if an exe cycle not started
+            entryTime = millis();
+            return false;
+          }
+          else {
+            elapsedTime = millis() - entryTime;
+
+            if (elapsedTime < skipTime) { //skip time is set when skip time or skip interval are set
+              return false;
+            }
+            else {
+              taskStarted = true;
+              runState = true;
+            }
+          }
+        }   
+
+        //if a cycle has not started yet.
+        //for spanning tasks, this only happens once.
+        if (!cycleStarted) {
+          if (intervalList[0] < 0) {  //if the first interval value is negative
+            intervalList[0] = abs(intervalList[0]); //sign is lost here
+            runState = false;
+            running = false;
+            dormant = true;
+          }
+          else {  //if interval is not negative
+            runState = true;
+            running = true;
+            dormant = false;
+            executionCounter++; //this increments before the interval counter
+          }
+          entryTime = millis();
+          cycleStarted = true;
+          iterationEnded = false;
+          taskStarted = true;
+          intervalIndex = 0;
+          // printStats();
+        }
+        else {
+          elapsedTime = millis() - entryTime;
+
+          if (elapsedTime >= intervalList[intervalIndex]) {
+            if (intervalIndex != (intervalCount-1)) {
+              intervalIndex++;
+            }
+            else {
+              intervalIndex = 0;
+            }
             intervalCounter++;
             exitTime = entryTime + elapsedTime;
             entryTime = millis();
