@@ -7,11 +7,11 @@
 // periodic tasks for Arduino without using traditional NOP delay routines.
 
 // Author : Vishnu Mohanan (@vishnumaiea)
-// Version : 0.0.3
+// Version : 0.0.9
 // License : MIT
 // Repo : https://github.com/vishnumaiea/ptScheduler
 
-// Last modified : +05:30 12:17:54 AM 29-11-2020, Sunday
+// Last modified : +05:30 01:11:37 AM 03-12-2020, Thursday
 
 //=======================================================================//
 //description
@@ -48,6 +48,7 @@ ptScheduler multiBlink = ptScheduler(100);
 uint8_t ledOn = false;  //a var to toggle the LED state
 
 //=======================================================================//
+//setup function runs once
 
 void setup() {
   Serial.begin(9600);
@@ -57,6 +58,7 @@ void setup() {
 }
 
 //=======================================================================//
+//infinite loop
 
 void loop() {
   //executed every second
@@ -80,8 +82,9 @@ void loop() {
 }
 
 //=======================================================================//
-//blinks an LED three times when activated and stops
-//activate again to blink
+//blinks an LED three times when activated and stops.
+//activate again to blink. the same function can be easily implemented with
+//an iterated task.
 
 void blinker() {
   if (multiBlink.call()) {

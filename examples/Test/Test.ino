@@ -7,11 +7,11 @@
 // periodic tasks for Arduino without using traditional NOP delay routines.
 
 // Author : Vishnu Mohanan (@vishnumaiea)
-// Version : 0.0.3
+// Version : 0.0.9
 // License : MIT
 // Repo : https://github.com/vishnumaiea/ptScheduler
 
-// Last modified : +05:30 12:17:16 AM 29-11-2020, Sunday
+// Last modified : +05:30 01:11:42 AM 03-12-2020, Thursday
 
 //=======================================================================//
 //description
@@ -35,19 +35,14 @@
 time_ms_t intervalArray[] = {2000, 1000, 3000}; 
 
 //create tasks
-ptScheduler sayHello = ptScheduler(1000);
-ptScheduler sayName = ptScheduler(-3000);
-ptScheduler basicBlink = ptScheduler(1000);
-ptScheduler multiBlink = ptScheduler(100);
-ptScheduler plot = ptScheduler(50);
+ptScheduler plot = ptScheduler(50); //serial plotter task
 
 ptScheduler epoTask = ptScheduler(1000);  //equal, periodic, oneshot
 ptScheduler eioTask = ptScheduler(PT_MODE2, 1000);  //equal, iterated, oneshot
 ptScheduler epsTask = ptScheduler(PT_MODE3, 1000);  //equal, periodic, spanning
 ptScheduler eisTask = ptScheduler(PT_MODE4, 1000); //equal, iterated, spanning
-ptScheduler upsTask = ptScheduler(PT_MODE5, 1000, 2000);
-ptScheduler uisTask_1 = ptScheduler(PT_MODE6, 1000, 2000);
-ptScheduler uisTask_2 = ptScheduler(PT_MODE6, intervalArray, 3);
+ptScheduler upsTask = ptScheduler(PT_MODE5, 1000, 2000);  //unequal, periodic, spanning
+ptScheduler uisTask = ptScheduler(PT_MODE6, intervalArray, 3);  //unequal, iterated, spanning
 
 uint8_t ledOn = false;  //a var to toggle the LED state
 
@@ -57,170 +52,125 @@ void setup() {
   Serial.begin(9600);
   pinMode(LED1, OUTPUT);
   pinMode(LED2, OUTPUT);
+
   // Serial.print("\n-- ptScheduler --\n\n");
 
-  // epoTask.setSkipInterval(4);
-  // epoTask.setSkipTime(1000);
-  // epoTask.setSkipIteration(5);
+  epoTask.setSkipInterval(4);
+  epoTask.setSkipTime(1000);
+  epoTask.setSkipIteration(5);
 
-  // eioTask.setIteration(5);
-  // eioTask.setSleepMode(PT_SLEEP_MODE2);
+  eioTask.setIteration(5);
+  eioTask.setSleepMode(PT_SLEEP_MODE2);
 
   eisTask.setIteration(5);
   eisTask.setSleepMode(PT_SLEEP_MODE2);
 
-  uisTask_1.setIteration(5);
-  uisTask_1.setSleepMode(PT_SLEEP_MODE2);
-
-  uisTask_2.setIteration(5);
-  uisTask_2.setSleepMode(PT_SLEEP_MODE2);
+  uisTask.setIteration(5);
+  uisTask.setSleepMode(PT_SLEEP_MODE2);
 }
 
 //=======================================================================//
 
 void loop() {
-  // //executed every second
-  // if (sayHello.call()) {
-  //   Serial.println("Hello World");
-  // }
-  
-  // //skips first time and executed every 3 seconds
-  // if (sayName.call()) {
-  //   Serial.println("I am ptScheduler");
-  //   multiBlink.activate();
-  // }
-  
-  // //toggles LED every second
-  // if (basicBlink.call()) {
-  //   digitalWrite (LED2, !digitalRead(LED2));
-  // }
+  uisFunction();
+}
 
-  // //periodic indefinite oneshot task
-  // if (epoTask.call()) {
-  //   Serial.println("3");
+//=======================================================================//
+//unequal interval, iterated and spanning task
 
-  //   if ((epoTask.intervalCounter >= 5) && (epoTask.intervalCounter <= 10)) {
-  //     epoTask.suspend();
-  //   }
-  // }
-  // else if (plot.call()) {
-  //   Serial.println("0");
-
-  //   if (epoTask.intervalCounter > 10) {
-  //     epoTask.resume();
-  //   }
-  // }
-
-  // //equal interval, iterated and oneshot task
-  // if (eioTask.call()) {
-  //   Serial.println("3");
-  // }
-  // else if (plot.call()) {
-  //   Serial.println("0");
-  //   if (eioTask.intervalCounter == 10) {
-  //     eioTask.resume();
-  //   }
-  // }
-  
-  // //equal interval, periodic indefinite and spanning task
-  // if (plot.call()) {
-  //   if (epsTask.call()) {
-  //     Serial.println("3");
-  //   }
-  //   else {
-  //     Serial.println("0");
-  //     if (epsTask.intervalCounter == 10) {
-  //       spanningTask.suspend();
-  //     }
-  //     else if (epsTask.intervalCounter > 15) {
-  //       epsTask.resume();
-  //     }
-  //   }
-  // }
-
-  // //equal interval, iterated and spanning task
-  // if (plot.call()) {
-  //   if (eisTask.call()) {
-  //     Serial.println("3");
-  //   }
-  //   else {
-  //     Serial.println("0");
-  //     if (eisTask.sleepIntervalCounter == 10) {
-  //       eisTask.resume();
-  //     }
-  //   }
-  // }
-
-
-  // //equal interval, iterated and spanning task
-  // if (plot.call()) {
-  //   if (upsTask.call()) {
-  //     Serial.println("3");
-  //   }
-  //   else {
-  //     Serial.println("0");
-  //     // if (eisTask.sleepIntervalCounter == 10) {
-  //     //   eisTask.resume();
-  //     // }
-  //   }
-  // }
-
-  // //equal interval, iterated and spanning task
-  // if (plot.call()) {
-  //   if (uisTask_1.call()) {
-  //     Serial.println("3");
-  //   }
-  //   else {
-  //     Serial.println("0");
-  //     // if (eisTask.sleepIntervalCounter == 10) {
-  //     //   eisTask.resume();
-  //     // }
-  //   }
-  // }
-
-  //equal interval, iterated and spanning task
+void uisFunction() {
   if (plot.call()) {
-    if (uisTask_2.call()) {
+    if (uisTask.call()) {
       Serial.println("3");
     }
     else {
       Serial.println("0");
-      // if (eisTask.sleepIntervalCounter == 10) {
-      //   eisTask.resume();
-      // }
     }
   }
-
-
-  //task as a function
-  blinker();
 }
 
 //=======================================================================//
-//blinks an LED three times when activated and stops
-//activate again to blink
+//unequal interval, periodic and spanning task
 
-void blinker() {
-  if (multiBlink.call()) {
-    if (multiBlink.executionCounter == 1) {  //task counter starts at 1
-      ledOn = true;
+void upsFunction() {
+  if (plot.call()) {
+    if (upsTask.call()) {
+      Serial.println("3");
     }
     else {
-      ledOn = !ledOn; //toggle state
+      Serial.println("0");
     }
+  }
+}
 
-    if (ledOn) {
-      digitalWrite (LED1, HIGH);
+//=======================================================================//
+//equal interval, iterated and spanning task
+
+void eisFunction() {
+  if (plot.call()) {
+    if (eisTask.call()) {
+      Serial.println("3");
     }
-
     else {
-      digitalWrite(LED1, LOW);
+      Serial.println("0");
+      if (eisTask.sleepIntervalCounter == 10) {
+        eisTask.resume();
+      }
     }
+  }
+}
 
-    if (multiBlink.executionCounter == 6) {  //it requires 6 intervals for 3 blinks
-      multiBlink.deactivate();
-      multiBlink.executionCounter = 0; //reset task counter
-      digitalWrite(LED1, LOW);  //bring the LED to idle state
+//=======================================================================//
+//equal interval, periodic and spanning task
+
+void epsFunction() {
+  if (plot.call()) {
+    if (epsTask.call()) {
+      Serial.println("3");
+    }
+    else {
+      Serial.println("0");
+      if (epsTask.intervalCounter == 10) {
+        epsTask.suspend();
+      }
+      else if (epsTask.intervalCounter > 15) {
+        epsTask.resume();
+      }
+    }
+  }
+}
+
+//=======================================================================//
+//equal interval, iterated and oneshot task
+
+void eioFunction() {
+  if (eioTask.call()) {
+    Serial.println("3");
+  }
+  else if (plot.call()) {
+    Serial.println("0");
+    if (eioTask.intervalCounter == 10) {
+      eioTask.resume();
+    }
+  }
+}
+
+//=======================================================================//
+//equal interval, periodic and oneshot task
+
+void epoFunction() {
+  if (epoTask.call()) {
+    Serial.println("3");
+
+    if ((epoTask.intervalCounter >= 5) && (epoTask.intervalCounter <= 10)) {
+      epoTask.suspend();
+    }
+  }
+  else if (plot.call()) {
+    Serial.println("0");
+
+    if (epoTask.intervalCounter > 10) {
+      epoTask.resume();
     }
   }
 }

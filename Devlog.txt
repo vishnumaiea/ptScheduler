@@ -1,0 +1,15 @@
+
+
+
++05:30 11:51:49 PM 02-12-2020, Wednesday
+
+  I've just reduced the code size from 25% to 22%. The code for modes 3, 4, 5 and 6 are same. So ptScheduler is almost complete! Yay 🎉
+
+
++05:30 11:42:47 PM 02-12-2020, Wednesday
+
+  My initial assumption that unequal interval could only apply to spanning tasks was not correct. It could also apply to oneshot tasks. Someone someday may find it useful.
+
+  Btw, this is the development log for this project where I speak stupidity and rant in solitude. New entries are added from the top of this file, a trick I INVENTED so that I don't have to scroll to the bottom of a big ass file just to rant. Who is reading this anyway!
+
+  I am not done talking yet. You have to add three new lines before adding an entry + a sensibly formatted (yes americans, that's you) timestamp. And don't forget to indent your text, so that smart text editors like VS Code will be able to fold large chunks for you.
