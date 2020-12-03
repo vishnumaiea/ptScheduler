@@ -91,14 +91,14 @@ class ptScheduler {
     void resume();  //resume a suspended task
     bool call();  //the task invokation call
     bool setInterval (time_ms_t value);  //dynamically set task interval
-    bool setInterval (time_ms_t value_1, time_ms_t value_2);
-    bool setIteration (int32_t value);
-    bool setSkipInterval (uint32_t value);
-    bool setSkipIteration (uint32_t value);
-    bool setSkipTime (time_ms_t value);
-    bool setTaskMode (uint8_t mode);
-    bool setSleepMode (uint8_t mode);
-    void printStats();
+    bool setInterval (time_ms_t value_1, time_ms_t value_2);  //update two interval values. only for tasks instantiated with >= intervals
+    bool setIteration (int32_t value);  //no. of iterations you want to execute for each activation
+    bool setSkipInterval (uint32_t value);  //intervals to wait before executing the task
+    bool setSkipIteration (uint32_t value); //iterations to wait before executing the task
+    bool setSkipTime (time_ms_t value); //time to wait before executing the task
+    bool setTaskMode (uint8_t mode);  //set execution mode
+    bool setSleepMode (uint8_t mode); //set what happens after an iteration is complete
+    void printStats();  //prints all the statuses and counter to debug port
 };
 
 //=======================================================================//

@@ -14,6 +14,11 @@
 // Last modified : +05:30 01:11:47 AM 03-12-2020, Thursday
 
 //=======================================================================//
+
+//  Read the header file for better understanding of how this library is
+//  organized. I have added plenty of comments whereever possible.
+
+//=======================================================================//
 //includes
 
 #include "ptScheduler.h"
