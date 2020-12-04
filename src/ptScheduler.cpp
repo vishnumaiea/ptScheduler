@@ -4,7 +4,7 @@
 // --- Pretty tiny Scheduler ---
 
 // Pretty tiny Scheduler is a small library for writing non-blocking
-// periodic tasks for Arduino without using traditional NOP delay routines.
+// periodic tasks for Arduino without using ordinary NOP delay routines.
 
 // Author : Vishnu Mohanan (@vishnumaiea)
 // Version : 0.0.9
@@ -35,7 +35,7 @@ ptScheduler::ptScheduler (time_ms_t interval_1) {
   interval_s = interval_1;  //save the signed value
   intervalCount = 1;
   intervalIndex = 0;
-  activated = true;
+  enabled = true;
 
   taskMode = PT_MODE1;  //default mode
   sleepMode = PT_SLEEP_MODE1; //task will be deactivated when an iteration completes
@@ -51,7 +51,7 @@ ptScheduler::ptScheduler (uint8_t mode, time_ms_t interval_1) {
   interval_s = interval_1;
   intervalCount = 1;
   intervalIndex = 0;
-  activated = true;
+  enabled = true;
   sleepMode = PT_SLEEP_MODE1;
 
   switch (taskMode) {
@@ -81,7 +81,7 @@ ptScheduler::ptScheduler (uint8_t mode, time_ms_t interval_1, time_ms_t interval
   interval_s = interval_1;
   intervalCount = 2;
   intervalIndex = 0;
-  activated = true;
+  enabled = true;
   sleepMode = PT_SLEEP_MODE1;
 
   switch (taskMode) {
@@ -119,7 +119,7 @@ ptScheduler::ptScheduler (uint8_t mode, time_ms_t* listPtr, uint8_t listLength) 
     }
     
     intervalIndex = 0;
-    activated = true;
+    enabled = true;
     sleepMode = PT_SLEEP_MODE1;
     
     //now we have to determine if the specified mode is possible with the input parameters
@@ -229,7 +229,7 @@ bool ptScheduler::call() {
   switch (taskMode) {
     case PT_MODE1:  //periodic oneshot
     case PT_MODE2:  //iterated oneshot
-      if (activated) {
+      if (enabled) {
         //if an execution cycle has not started, yet skip for the time set
         if ((!taskStarted) && (skipIntervalSet || skipIntervalSet || skipTimeSet)) {
           if (entryTime == 0) { //this is one way to find if an exe cycle not started
@@ -267,7 +267,7 @@ bool ptScheduler::call() {
               if (iterations > 0) { //if this is an iterated task
                 if (executionCounter == iterations) { //when the specified no. of iterations have been reached
                   if (sleepMode == PT_SLEEP_MODE1) {
-                    deactivate(); //interval counter will not run in this mode
+                    disable(); //interval counter will not run in this mode
                   }
                   else {
                     //this is the self-suspend mode.
@@ -323,7 +323,7 @@ bool ptScheduler::call() {
     case PT_MODE4:  //iterated spanning
     case PT_MODE5:  //unequal periodic spanning
     case PT_MODE6:  //unequal iterated spanning
-      if (activated) {
+      if (enabled) {
         //if an execution cycle has not started, yet skip for the time set.
         if ((!taskStarted) && (skipIntervalSet || skipIntervalSet || skipTimeSet)) {
           if (entryTime == 0) { //this is one way to find if an exe cycle not started
@@ -384,7 +384,7 @@ bool ptScheduler::call() {
               if (iterations > 0) { //if this is an iterated task
                 if (executionCounter == iterations) { //when the specified no. of iterations have been reached
                   if (sleepMode == PT_SLEEP_MODE1) {
-                    deactivate(); //interval counter will not run in this mode
+                    disable(); //interval counter will not run in this mode
                   }
                   else {
                     //this is the self-suspend mode.
@@ -483,7 +483,7 @@ void ptScheduler::printStats() {
   debugSerial.print(F("Iteration Counter : "));
   debugSerial.println((uint32_t)iterationCounter);
   debugSerial.print(F("Activated ? : "));
-  debugSerial.println(activated);
+  debugSerial.println(enabled);
   debugSerial.print(F("Suspended ? : "));
   debugSerial.println(suspended);
   debugSerial.print(F("Task Started ? : "));
@@ -509,8 +509,8 @@ void ptScheduler::printStats() {
 //activates a task.
 //only active tasks are executed regardless of their turn for execution.
 
-void ptScheduler::activate() {
-  activated = true;
+void ptScheduler::enable() {
+  enabled = true;
 }
 
 //=======================================================================//
@@ -533,10 +533,10 @@ void ptScheduler::resume() {
 //this will reset all values to their idle state.
 //all the user specified values will be preserved.
 //this include, mode, skip interval, time, iteration, default interval etc.
-//you have to call either activate() or reset() functions to start execution again.
+//you have to call either enable() or reset() functions to start execution again.
 
-void ptScheduler::deactivate() {
-  activated = false;
+void ptScheduler::disable() {
+  enabled = false;
   taskStarted = false;
   cycleStarted = false;
   dormant = false;
@@ -559,8 +559,8 @@ void ptScheduler::deactivate() {
 //a reset reinitializes the task
 
 void ptScheduler::reset() {
-  deactivate();
-  activate();
+  disable();
+  enable();
 }
 
 //=======================================================================//

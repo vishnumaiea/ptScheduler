@@ -4,7 +4,7 @@
 // --- Pretty tiny Scheduler ---
 
 // Pretty tiny Scheduler is a small library for writing non-blockcing
-// periodic tasks for Arduino without using traditional NOP delay routines.
+// periodic tasks for Arduino without using ordinary NOP delay routines.
 
 // Author : Vishnu Mohanan (@vishnumaiea)
 // Version : 0.0.9

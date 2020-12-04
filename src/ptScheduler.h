@@ -4,7 +4,7 @@
 // --- Pretty tiny Scheduler ---
 
 // Pretty tiny Scheduler is a small library for writing non-blockcing
-// periodic tasks for Arduino without using traditional NOP delay routines.
+// periodic tasks for Arduino without using ordinary NOP delay routines.
 
 // Author : Vishnu Mohanan (@vishnumaiea)
 // Version : 0.0.9
@@ -65,7 +65,7 @@ class ptScheduler {
     uint32_t skipIteration = 0; //number of iterations to skip
     time_ms_t skipTime = 0; //time to skip before running a task
 
-    bool activated = true;  //a task is allowed to run or not
+    bool enabled = true;  //a task is allowed to run or not
     bool taskStarted = false; //a task has started an execution cycle
     bool cycleStarted = false; //a task has started an interval cycle
     bool dormant = false; //if the task is not in running state
@@ -85,9 +85,9 @@ class ptScheduler {
     ptScheduler (uint8_t _mode, time_ms_t* listPtr, uint8_t listLength);
     ~ptScheduler();
     void reset(); //deactivate + activate
-    void activate();  //activating a task to run at each intervals
-    void deactivate();  //prevent a task from running and reset all state variables and counters
-    void suspend();  //prevent a task from running at each intervals but without resetting anything
+    void enable();  //enabling a task to run at each intervals
+    void disable();  //block a task from running and reset all state variables and counters
+    void suspend();  //block a task from running but without resetting anything. interval counter will still run.
     void resume();  //resume a suspended task
     bool call();  //the task invokation call
     bool setInterval (time_ms_t value);  //dynamically set task interval
