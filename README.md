@@ -1,2 +1,10 @@
 # ptScheduler
-**Pretty tiny Scheduler** or **ptScheduler** is a small library for writing non-blocking periodic tasks for Arduino without using the ordinary NOP delay routines.
+**Pretty tiny Scheduler** or **ptScheduler** is a non-preemptive task scheduler that helps you write **periodic non-blocking tasks** easily and effectively without using ordinary delay routines or using `millis()` function on your own.
+
+Under the hood, ptScheduler uses the native `millis()` implementation. The `millis()` function is a timer based **ISR** that increments a global counter variable (unsigned integer) every millisecond.
+
+When you create a new ptScheduler object, you can specify the time intervals and execution modes. All the class member variables and functions are public and therefore gives you full control over your tasks, allowing dynamically changing the behavior of the task.
+
+To run a task, just enclose the **`call()`** function inside any **conditional statements**, either inside your infinite loop or inside a function. Every time you invoke the `call()` function, it checks the elapsed time to determine if your task has to be executed. If yes, it will return `true` and cause the code under the conditional block to be executed once.
+
+ptScheduler is good mainly for **control applications** with perodic polling of sensors, GPIOs and other parameters.
