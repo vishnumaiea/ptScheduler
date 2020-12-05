@@ -24,17 +24,29 @@
 #define debugSerial   Serial
 
 //task execution modes
-#define PT_MODE0    0   //reserved mode
-#define PT_MODE1    1   //Periodic Oneshot
-#define PT_MODE2    2   //Iterated Oneshot
-#define PT_MODE3    3   //Periodic Equal Spanning
-#define PT_MODE4    4   //Iterated Equal Spanning
-#define PT_MODE5    5   //Periodic Unequal Spanning
-#define PT_MODE6    6   //Iterated Unequal Spanning
+// #define PT_MODE0    0   //reserved mode
+// #define PT_MODE1    1   //Periodic Oneshot
+// #define PT_MODE2    2   //Iterated Oneshot
+// #define PT_MODE3    3   //Periodic Equal Spanning
+// #define PT_MODE4    4   //Iterated Equal Spanning
+// #define PT_MODE5    5   //Periodic Unequal Spanning
+// #define PT_MODE6    6   //Iterated Unequal Spanning
+
+#define PT_MODE_EPO     1   //Equal, Periodic, Oneshot
+#define PT_MODE_EIO     2   //Equal, Iterated, Oneshot
+#define PT_MODE_UPO     3   //Unequal, Periodic, Oneshot
+#define PT_MODE_UIO     4   //Unequal, Iterated, Oneshot
+#define PT_MODE_EPS     5   //Equal, Periodic, Spanning
+#define PT_MODE_EIS     6   //Equal, Iterated, Spanning
+#define PT_MODE_UPS     7   //Unequal, Periodic, Spanning
+#define PT_MODE_UIS     8   //Unequal, Iterated, Spanning
 
 //task sleep modes
-#define PT_SLEEP_MODE1     1    //self-deactivate mode
-#define PT_SLEEP_MODE2     2    //self-suspend mode
+// #define PT_SLEEP_MODE1     1    //self-deactivate mode
+// #define PT_SLEEP_MODE2     2    //self-suspend mode
+
+#define PT_SLEEP_DISABLE     1    //self-disable mode
+#define PT_SLEEP_SUSPEND     2    //self-suspend mode
 
 typedef int64_t time_ms_t;  //time in milliseconds
 
@@ -48,19 +60,19 @@ class ptScheduler {
     time_ms_t entryTime = 0;  //the entry point of a task, returned by millis()
     time_ms_t exitTime = 0; //the exit point of a tast, returned by millis()
     time_ms_t elapsedTime = 0;  //elapsed time since the last task execution
-    time_ms_t residualTime = 0; //elapsed time - interval time
+    // time_ms_t residualTime = 0; //elapsed time - interval time
     uint64_t intervalCounter = 0; //how many intervals have been passed
-    uint64_t sleepIntervalCounter = 0; //how many intervals have been passed after deactivating/suspending the task
+    uint64_t sleepIntervalCounter = 0; //how many intervals have been passed after disabling/suspending the task
     uint64_t executionCounter = 0; //how many times the task has been executed
     uint64_t iterationCounter = 0; //how many times the iteration set has been executed
     
     uint32_t iterations = 0;  //how many times a task has to be executed, for each activation
-    uint8_t taskMode = PT_MODE1;  //the execution mode of a task
-    uint8_t sleepMode = PT_SLEEP_MODE1; //default is deactivation
+    uint32_t iterationsExtended = 0;  //how many times a task has to be executed, for each activation
+    uint8_t taskMode = PT_MODE_EPO;  //the execution mode of a task
+    uint8_t sleepMode = PT_SLEEP_DISABLE; //default is disable
     uint8_t intervalCount;  //how many intervals have been passed
     time_ms_t* intervalList;  //a pointer to array of intervals
     uint8_t intervalIndex = 0;  //the position in the interval list
-    time_ms_t interval_s = 0; //backup signed value of first interval
     uint32_t skipInterval = 0;  //number of intervals to skip
     uint32_t skipIteration = 0; //number of iterations to skip
     time_ms_t skipTime = 0; //time to skip before running a task
@@ -68,7 +80,7 @@ class ptScheduler {
     bool enabled = true;  //a task is allowed to run or not
     bool taskStarted = false; //a task has started an execution cycle
     bool cycleStarted = false; //a task has started an interval cycle
-    bool dormant = false; //if the task is not in running state
+    // bool dormant = false; //if the task is not in running state
     bool suspended = false; //a task is prevented from running until further activation
     bool iterationEnded = false;  //end of an iteration set
     bool running = false; //a task is running
@@ -84,7 +96,7 @@ class ptScheduler {
     ptScheduler (uint8_t _mode, time_ms_t interval_1, time_ms_t interval_2);
     ptScheduler (uint8_t _mode, time_ms_t* listPtr, uint8_t listLength);
     ~ptScheduler();
-    void reset(); //deactivate + activate
+    void reset(); //disable + enable
     void enable();  //enabling a task to run at each intervals
     void disable();  //block a task from running and reset all state variables and counters
     void suspend();  //block a task from running but without resetting anything. interval counter will still run.
@@ -98,6 +110,7 @@ class ptScheduler {
     bool setSkipTime (time_ms_t value); //time to wait before executing the task
     bool setTaskMode (uint8_t mode);  //set execution mode
     bool setSleepMode (uint8_t mode); //set what happens after an iteration is complete
+    bool isInputError();
     void printStats();  //prints all the statuses and counter to debug port
 };
 

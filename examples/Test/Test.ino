@@ -32,17 +32,17 @@
 //=======================================================================//
 //globals
 
-time_ms_t intervalArray[] = {2000, 1000, 3000}; 
+time_ms_t intervalArray[] = {1000, 1500, 2000, 2500, 3000}; 
 
 //create tasks
 ptScheduler plot = ptScheduler(50); //serial plotter task
 
 ptScheduler epoTask = ptScheduler(1000);  //equal, periodic, oneshot
-ptScheduler eioTask = ptScheduler(PT_MODE2, 1000);  //equal, iterated, oneshot
-ptScheduler epsTask = ptScheduler(PT_MODE3, 1000);  //equal, periodic, spanning
-ptScheduler eisTask = ptScheduler(PT_MODE4, 1000); //equal, iterated, spanning
-ptScheduler upsTask = ptScheduler(PT_MODE5, 1000, 2000);  //unequal, periodic, spanning
-ptScheduler uisTask = ptScheduler(PT_MODE6, intervalArray, 3);  //unequal, iterated, spanning
+ptScheduler eioTask = ptScheduler(PT_MODE_EIO, 1000);  //equal, iterated, oneshot
+ptScheduler epsTask = ptScheduler(PT_MODE_EPS, 1000);  //equal, periodic, spanning
+ptScheduler eisTask = ptScheduler(PT_MODE_EIS, 1000); //equal, iterated, spanning
+ptScheduler upsTask = ptScheduler(PT_MODE_UPS, 1000, 2000);  //unequal, periodic, spanning
+ptScheduler uisTask = ptScheduler(PT_MODE_UIS, intervalArray, 4);  //unequal, iterated, spanning
 
 uint8_t ledOn = false;  //a var to toggle the LED state
 
@@ -60,13 +60,13 @@ void setup() {
   epoTask.setSkipIteration(5);
 
   eioTask.setIteration(5);
-  eioTask.setSleepMode(PT_SLEEP_MODE2);
+  eioTask.setSleepMode(PT_SLEEP_SUSPEND);
 
   eisTask.setIteration(5);
-  eisTask.setSleepMode(PT_SLEEP_MODE2);
+  eisTask.setSleepMode(PT_SLEEP_SUSPEND);
 
-  uisTask.setIteration(5);
-  uisTask.setSleepMode(PT_SLEEP_MODE2);
+  uisTask.setIteration(2);
+  uisTask.setSleepMode(PT_SLEEP_SUSPEND);
 }
 
 //=======================================================================//

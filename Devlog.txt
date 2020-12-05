@@ -1,6 +1,11 @@
 
 
 
++05:30 08:43:41 PM 04-12-2020, Friday
+
+  I don't think we need to negative values intervals. The original intention was that it could allow us to skip the first interval. But with new modes and dedicated skip time functions, I think the original feature is now redundant. Let's remove signs of all intervals by getting the abs() and delete the interval_s variable.
+
+
 +05:30 11:51:49 PM 02-12-2020, Wednesday
 
   I've just reduced the code size from 25% to 22%. The code for modes 3, 4, 5 and 6 are same. So ptScheduler is almost complete! Yay 🎉
