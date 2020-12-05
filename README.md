@@ -1,5 +1,5 @@
 # ptScheduler
-**Pretty tiny Scheduler** or **ptScheduler** is a non-preemptive task scheduler that helps you write **periodic non-blocking tasks** easily and effectively without using ordinary delay routines or using `millis()` function on your own.
+**Pretty tiny Scheduler** or **ptScheduler** is a non-preemptive task scheduler library for **Arduino** that helps you write **periodic non-blocking tasks** easily and effectively without using ordinary delay routines or using `millis()` function on your own. You won't have to use **delay()** function again.
 
 Under the hood, ptScheduler uses the native `millis()` implementation. The `millis()` function is a timer based **ISR** that increments a global counter variable (unsigned integer) every millisecond.
 
