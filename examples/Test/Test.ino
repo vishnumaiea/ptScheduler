@@ -7,7 +7,7 @@
 // periodic tasks for Arduino without using ordinary NOP delay routines.
 
 // Author : Vishnu Mohanan (@vishnumaiea)
-// Version : 0.0.9
+// Version : 1.0.0
 // License : MIT
 // Repo : https://github.com/vishnumaiea/ptScheduler
 
@@ -32,7 +32,7 @@
 //=======================================================================//
 //globals
 
-time_ms_t intervalArray[] = {1000, 1500, 2000, 2500, 3000}; 
+time_ms_t intervalArray[] = {1000, 1000, 2000, 2500, 3000}; 
 
 //create tasks
 ptScheduler plot = ptScheduler(50); //serial plotter task
@@ -42,7 +42,7 @@ ptScheduler eioTask = ptScheduler(PT_MODE_EIO, 1000);  //equal, iterated, onesho
 ptScheduler epsTask = ptScheduler(PT_MODE_EPS, 1000);  //equal, periodic, spanning
 ptScheduler eisTask = ptScheduler(PT_MODE_EIS, 1000); //equal, iterated, spanning
 ptScheduler upsTask = ptScheduler(PT_MODE_UPS, 1000, 2000);  //unequal, periodic, spanning
-ptScheduler uisTask = ptScheduler(PT_MODE_UIS, intervalArray, 4);  //unequal, iterated, spanning
+ptScheduler uisTask = ptScheduler(PT_MODE_UIS, intervalArray, 2);  //unequal, iterated, spanning
 
 uint8_t ledOn = false;  //a var to toggle the LED state
 
@@ -65,7 +65,7 @@ void setup() {
   eisTask.setIteration(5);
   eisTask.setSleepMode(PT_SLEEP_SUSPEND);
 
-  uisTask.setIteration(2);
+  uisTask.setIteration(3);
   uisTask.setSleepMode(PT_SLEEP_SUSPEND);
 }
 

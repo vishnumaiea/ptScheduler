@@ -13,7 +13,7 @@
         "url": "https://github.com/vishnumaiea",
         "maintainer": true
     },
-    "version": "0.0.9",
+    "version": "1.0.0",
     "license": "MIT",
     "frameworks": "arduino",
     "platforms": "*"

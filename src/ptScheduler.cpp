@@ -7,7 +7,7 @@
 // periodic tasks for Arduino without using ordinary NOP delay routines.
 
 // Author : Vishnu Mohanan (@vishnumaiea)
-// Version : 0.0.9
+// Version : 1.0.0
 // License : MIT
 // Repo : https://github.com/vishnumaiea/ptScheduler
 
@@ -357,12 +357,10 @@ bool ptScheduler::call() {
             intervalList[0] = abs(intervalList[0]); //sign is lost here
             runState = false;
             running = false;
-            // dormant = true;
           }
           else {  //if interval is not negative
             runState = true;
             running = true;
-            // dormant = false;
             executionCounter++; //this increments before the interval counter
           }
           entryTime = millis();
@@ -404,7 +402,6 @@ bool ptScheduler::call() {
                   // intervalCounter = 0;
                   runState = false;
                   running = false;
-                  // dormant = true;
                   iterationEnded = true;
                   sleepIntervalCounter = 0;
                   // intervalIndex = 0;  //you have to manually reset this, if you want
@@ -418,11 +415,9 @@ bool ptScheduler::call() {
               if (runState) {
                 executionCounter++;
                 running = true;
-                // dormant = false;
               }
               else {
                 running = false;
-                // dormant = true;
               }
             }
             else {  //if suspended
@@ -485,8 +480,6 @@ void ptScheduler::printStats() {
   debugSerial.println((int32_t) elapsedTime);
   debugSerial.print(F("Exit Time : "));
   debugSerial.println((int32_t) exitTime);
-  // debugSerial.print(F("Residual Time : "));
-  // debugSerial.println((int32_t) residualTime);
   debugSerial.print(F("Interval Counter : "));
   debugSerial.println((uint32_t)intervalCounter);
   debugSerial.print(F("Execution Counter : "));
@@ -501,8 +494,6 @@ void ptScheduler::printStats() {
   debugSerial.println(taskStarted);
   debugSerial.print(F("Cycle Started ? : "));
   debugSerial.println(cycleStarted);
-  // debugSerial.print(F("Dormant ? : "));
-  // debugSerial.println(dormant);
   debugSerial.print(F("Running ? : "));
   debugSerial.println(running);
   debugSerial.print(F("Ended ? : "));
@@ -719,6 +710,9 @@ bool ptScheduler::setSkipTime (time_ms_t value) {
 }
 
 //=======================================================================//
+//if any of the user inputs are wrong, the inputError flag is set to true.
+//call this function to check if there was any errors.
+//calling this function will also reset the flag.
 
 bool ptScheduler::isInputError() {
   if (inputError) {

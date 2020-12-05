@@ -7,7 +7,7 @@
 // periodic tasks for Arduino without using ordinary NOP delay routines.
 
 // Author : Vishnu Mohanan (@vishnumaiea)
-// Version : 0.0.9
+// Version : 1.0.0
 // License : MIT
 // Repo : https://github.com/vishnumaiea/ptScheduler
 

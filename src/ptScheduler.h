@@ -7,7 +7,7 @@
 // periodic tasks for Arduino without using ordinary NOP delay routines.
 
 // Author : Vishnu Mohanan (@vishnumaiea)
-// Version : 0.0.9
+// Version : 1.0.0
 // License : MIT
 // Repo : https://github.com/vishnumaiea/ptScheduler
 
@@ -23,15 +23,6 @@
 
 #define debugSerial   Serial
 
-//task execution modes
-// #define PT_MODE0    0   //reserved mode
-// #define PT_MODE1    1   //Periodic Oneshot
-// #define PT_MODE2    2   //Iterated Oneshot
-// #define PT_MODE3    3   //Periodic Equal Spanning
-// #define PT_MODE4    4   //Iterated Equal Spanning
-// #define PT_MODE5    5   //Periodic Unequal Spanning
-// #define PT_MODE6    6   //Iterated Unequal Spanning
-
 #define PT_MODE_EPO     1   //Equal, Periodic, Oneshot
 #define PT_MODE_EIO     2   //Equal, Iterated, Oneshot
 #define PT_MODE_UPO     3   //Unequal, Periodic, Oneshot
@@ -40,10 +31,6 @@
 #define PT_MODE_EIS     6   //Equal, Iterated, Spanning
 #define PT_MODE_UPS     7   //Unequal, Periodic, Spanning
 #define PT_MODE_UIS     8   //Unequal, Iterated, Spanning
-
-//task sleep modes
-// #define PT_SLEEP_MODE1     1    //self-deactivate mode
-// #define PT_SLEEP_MODE2     2    //self-suspend mode
 
 #define PT_SLEEP_DISABLE     1    //self-disable mode
 #define PT_SLEEP_SUSPEND     2    //self-suspend mode
@@ -60,7 +47,6 @@ class ptScheduler {
     time_ms_t entryTime = 0;  //the entry point of a task, returned by millis()
     time_ms_t exitTime = 0; //the exit point of a tast, returned by millis()
     time_ms_t elapsedTime = 0;  //elapsed time since the last task execution
-    // time_ms_t residualTime = 0; //elapsed time - interval time
     uint64_t intervalCounter = 0; //how many intervals have been passed
     uint64_t sleepIntervalCounter = 0; //how many intervals have been passed after disabling/suspending the task
     uint64_t executionCounter = 0; //how many times the task has been executed
@@ -80,7 +66,6 @@ class ptScheduler {
     bool enabled = true;  //a task is allowed to run or not
     bool taskStarted = false; //a task has started an execution cycle
     bool cycleStarted = false; //a task has started an interval cycle
-    // bool dormant = false; //if the task is not in running state
     bool suspended = false; //a task is prevented from running until further activation
     bool iterationEnded = false;  //end of an iteration set
     bool running = false; //a task is running
