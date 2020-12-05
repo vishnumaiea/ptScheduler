@@ -9,4 +9,10 @@ To run a task, just enclose the **`call()`** function inside any **conditional s
 
 ptScheduler is good mainly for **control applications** with perodic polling of sensors, GPIOs and other parameters.
 
+# Documentation
+
 Head over to the **[Wiki page](https://github.com/vishnumaiea/ptScheduler/wiki)** to learn more.
+
+# Reference
+
+See all available functions and variables in the **[Reference](https://github.com/vishnumaiea/ptScheduler/wiki/Reference)** page.
