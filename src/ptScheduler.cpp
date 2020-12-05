@@ -657,19 +657,23 @@ bool ptScheduler::setInterval (time_ms_t value_1, time_ms_t value_2) {
 //skip time. input is a positive integer.
 
 bool ptScheduler::setSkipInterval (uint32_t value) {
-  skipInterval = value;
-  skipIntervalSet = true;
+  if (intervalCount > 0) {
+    skipInterval = value;
+    skipIntervalSet = true;
 
-  skipTime = 0;
-  uint32_t index = 0;
+    skipTime = 0;
+    uint32_t index = 0;
 
-  for (uint32_t i=0; i < value; i++) {
-    if (index == intervalCount) {
-      index = 0;
+    for (uint32_t i=0; i < value; i++) {
+      if (index == intervalCount) {
+        index = 0;
+      }
+      skipTime += intervalList[index];
+      index++;
     }
-    skipTime += intervalList[index];
-    index++;
+    return true;
   }
+  return false;
 }
 
 //=======================================================================//
@@ -684,16 +688,20 @@ bool ptScheduler::setSkipInterval (uint32_t value) {
 //input is a positive integer.
 
 bool ptScheduler::setSkipIteration (uint32_t value) {
-  skipIteration = value;
-  skipIterationSet = true;
+  if (intervalCount > 0) {
+    skipIteration = value;
+    skipIterationSet = true;
 
-  skipTime = 0;
+    skipTime = 0;
 
-  for (uint8_t i=0; i < value; i++) {
-    for (uint8_t j=0; j < intervalCount; j++) {
-      skipTime += intervalList[j];
+    for (uint8_t i=0; i < value; i++) {
+      for (uint8_t j=0; j < intervalCount; j++) {
+        skipTime += intervalList[j];
+      }
     }
+    return true;
   }
+  return false;
 }
 
 //=======================================================================//
@@ -704,9 +712,12 @@ bool ptScheduler::setSkipIteration (uint32_t value) {
 //input is time on milliseconds.
 
 bool ptScheduler::setSkipTime (time_ms_t value) {
-  skipTime = abs(value);
-  skipTimeSet = true;
-  return true;
+  if (intervalCount > 0) {
+    skipTime = abs(value);
+    skipTimeSet = true;
+    return true;
+  }
+  return false;
 }
 
 //=======================================================================//
