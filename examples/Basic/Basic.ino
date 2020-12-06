@@ -11,7 +11,7 @@
 // License : MIT
 // Src : https://github.com/vishnumaiea/ptScheduler
 
-// Last modified : +05:30 01:20:23 PM 06-12-2020, Sunday
+// Last modified : +05:30 11:40:17 PM 06-12-2020, Sunday
 
 //=======================================================================//
 //description
@@ -20,10 +20,9 @@
 //Two tasks, sayHello and sayName simply print to the serial monitor at
 //specified intervals. The other two tasks, basicBlink and multiBlink
 //blinks two LEDs. The basicBlink blinks an LED every second indefinitely.
-//The multiBlink blinks the LED for three times in a burst manner. It is
-//written to stop after three blinks. But it is enabled again to blink
-//every three seconds. The multiBlink is added as a function you can invoke
-//from the loop function.
+//The multiBlink blinks the LED for three times in a burst manner. multiBlink
+//is an example of an iterated task that stops after a preset number of
+//iterations.
 
 //=======================================================================//
 //includes
@@ -41,11 +40,9 @@
 
 //create tasks
 ptScheduler sayHello = ptScheduler(1000);
-ptScheduler sayName = ptScheduler(-3000);
+ptScheduler sayName = ptScheduler(3000);
 ptScheduler basicBlink = ptScheduler(1000);
-ptScheduler multiBlink = ptScheduler(100);
-
-uint8_t ledOn = false;  //a var to toggle the LED state
+ptScheduler multiBlink = ptScheduler(PT_MODE_EIO, 100); //Equal, Iterated, Oneshot
 
 //=======================================================================//
 //setup function runs once
@@ -54,6 +51,10 @@ void setup() {
   Serial.begin(9600);
   pinMode(LED1, OUTPUT);
   pinMode(LED2, OUTPUT);
+
+  multiBlink.setSleepMode(PT_SLEEP_SUSPEND);  //suspend mode so that we can resume the task periodically
+  multiBlink.setIteration(6); //for three blinks, we need 6 iterations (3 OFF states, and 3 ON states)
+
   Serial.print("\n-- ptScheduler --\n\n");
 }
 
@@ -78,36 +79,20 @@ void loop() {
   }
   
   //task as a function
-  blinker();
+  multiBlinker();
 }
 
 //=======================================================================//
-//blinks an LED three times when enabled and stops.
-//enable again to blink. the same function can be easily implemented with
-//an iterated task.
+//blinks an LED three times, every 2 seconds
 
-void blinker() {
-  if (multiBlink.call()) {
-    if (multiBlink.executionCounter == 1) {  //task counter starts at 1
-      ledOn = true;
-    }
-    else {
-      ledOn = !ledOn; //toggle state
-    }
-
-    if (ledOn) {
-      digitalWrite (LED1, HIGH);
-    }
-
-    else {
-      digitalWrite(LED1, LOW);
-    }
-
-    if (multiBlink.executionCounter == 6) {  //it requires 6 intervals for 3 blinks
-      multiBlink.disable();
-      multiBlink.executionCounter = 0; //reset task counter
-      digitalWrite(LED1, LOW);  //bring the LED to idle state
-    }
+void multiBlinker() {
+  if (multiBlink.call()) {  //returns true every 100 ms
+    digitalWrite (LED1, !digitalRead(LED1)); //toggle LED
+  }
+  //because the sleep mode is SUSPEND, the sleepIntervalCounter still increments.
+  //but if the mode was DISABLE, it wouldn't increment.
+  else if (multiBlink.sleepIntervalCounter >= 20) { //100 ms * 20 = 2000 ms
+    multiBlink.resume();  //resume the suspended task so that LED will blink again
   }
 }
 

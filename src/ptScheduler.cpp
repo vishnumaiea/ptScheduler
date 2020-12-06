@@ -529,19 +529,19 @@ void ptScheduler::disable() {
   enabled = false;
   taskStarted = false;
   cycleStarted = false;
-  // dormant = false;
   suspended = false;
   iterationEnded = true;
   running = false;
+  runState = false;
 
-  executionCounter = 0;
-  intervalCounter = 0;
-  intervalIndex = 0;
-  sleepIntervalCounter = 0;
   entryTime = 0;
   exitTime = 0;
   elapsedTime = 0;
-  // residualTime = 0;
+  intervalCounter = 0;
+  sleepIntervalCounter = 0;
+  executionCounter = 0;
+  iterationCounter = 0;
+  intervalIndex = 0;
 }
 
 //=======================================================================//

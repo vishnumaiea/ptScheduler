@@ -11,7 +11,7 @@
 // License : MIT
 // Src : https://github.com/vishnumaiea/ptScheduler
 
-// Last modified : +05:30 01:20:18 PM 06-12-2020, Sunday
+// Last modified : +05:30 11:40:10 PM 06-12-2020, Sunday
 
 //=======================================================================//
 //description
@@ -27,7 +27,7 @@
 //globals
 
 //create tasks
-ptScheduler sayHello = ptScheduler(1000);
+ptScheduler sayHello = ptScheduler(1000); //Equal, Periodic, Oneshot
 
 //=======================================================================//
 //setup function runs once
@@ -40,8 +40,7 @@ void setup() {
 //infinite loop
 
 void loop() {
-  //executed every second
-  if (sayHello.call()) {
+  if (sayHello.call()) {  //executed every second
     Serial.println("Hello World");
   }
 

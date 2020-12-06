@@ -53,8 +53,6 @@ void setup() {
   pinMode(LED1, OUTPUT);
   pinMode(LED2, OUTPUT);
 
-  // Serial.print("\n-- ptScheduler --\n\n");
-
   epoTask.setSkipInterval(4);
   epoTask.setSkipTime(1000);
   epoTask.setSkipIteration(5);
