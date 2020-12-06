@@ -3,15 +3,15 @@
 
 // --- Pretty tiny Scheduler ---
 
-// Pretty tiny Scheduler is a small library for writing non-blockcing
-// periodic tasks for Arduino without using ordinary NOP delay routines.
+// Pretty tiny Scheduler is an Arduino library for writing non-blocking
+// periodic tasks without using delay() or millis() routines.
 
 // Author : Vishnu Mohanan (@vishnumaiea)
-// Version : 1.0.0
+// Version : 1.1.0
 // License : MIT
-// Repo : https://github.com/vishnumaiea/ptScheduler
+// Src : https://github.com/vishnumaiea/ptScheduler
 
-// Last modified : +05:30 01:12:00 AM 03-12-2020, Thursday
+// Last modified : +05:30 01:20:04 PM 06-12-2020, Sunday
 
 //=======================================================================//
 //includes
@@ -35,7 +35,7 @@
 #define PT_SLEEP_DISABLE     1    //self-disable mode
 #define PT_SLEEP_SUSPEND     2    //self-suspend mode
 
-typedef int64_t time_ms_t;  //time in milliseconds
+typedef uint64_t time_ms_t;  //time in milliseconds
 
 //=======================================================================//
 //main class

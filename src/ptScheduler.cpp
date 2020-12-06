@@ -3,15 +3,15 @@
 
 // --- Pretty tiny Scheduler ---
 
-// Pretty tiny Scheduler is a small library for writing non-blocking
-// periodic tasks for Arduino without using ordinary NOP delay routines.
+// Pretty tiny Scheduler is an Arduino library for writing non-blocking
+// periodic tasks without using delay() or millis() routines.
 
 // Author : Vishnu Mohanan (@vishnumaiea)
-// Version : 1.0.0
+// Version : 1.1.0
 // License : MIT
-// Repo : https://github.com/vishnumaiea/ptScheduler
+// Src : https://github.com/vishnumaiea/ptScheduler
 
-// Last modified : +05:30 01:11:47 AM 03-12-2020, Thursday
+// Last modified : +05:30 01:20:10 PM 06-12-2020, Sunday
 
 //=======================================================================//
 
@@ -31,7 +31,7 @@
 
 ptScheduler::ptScheduler (time_ms_t interval_1) {
   intervalList = new time_ms_t(1);  //create a new list
-  intervalList[0] = abs(interval_1);
+  intervalList[0] = interval_1;
   intervalCount = 1;
   intervalIndex = 0;
   // enabled = true;
@@ -46,7 +46,7 @@ ptScheduler::ptScheduler (time_ms_t interval_1) {
 
 ptScheduler::ptScheduler (uint8_t mode, time_ms_t interval_1) {
   intervalList = new time_ms_t(1);  //create a new list
-  intervalList[0] = abs(interval_1);
+  intervalList[0] = interval_1;
   intervalCount = 1;
   intervalIndex = 0;
   enabled = true;
@@ -74,8 +74,8 @@ ptScheduler::ptScheduler (uint8_t mode, time_ms_t interval_1) {
 
 ptScheduler::ptScheduler (uint8_t mode, time_ms_t interval_1, time_ms_t interval_2) {
   intervalList = new time_ms_t(2);  //create a new list
-  intervalList[0] = abs(interval_1);
-  intervalList[1] = abs(interval_2);
+  intervalList[0] = interval_1;
+  intervalList[1] = interval_2;
   intervalCount = 2;
   intervalIndex = 0;
   enabled = true;
@@ -110,10 +110,6 @@ ptScheduler::ptScheduler (uint8_t mode, time_ms_t* listPtr, uint8_t listLength) 
   if ((listPtr != nullptr) && (listLength != 0)) {
     intervalList = listPtr;
     intervalCount = listLength;
-
-    for (uint8_t i=0; i < intervalCount; i++) {
-      intervalList[i] = abs(intervalList[i]); //remove the sign of all values
-    }
     
     intervalIndex = 0;
     enabled = true;
@@ -257,50 +253,41 @@ bool ptScheduler::call() {
 
         //start a new time cycle
         if (!cycleStarted) { //if a time cycle has not started
-          if (intervalList[0] < 0) { //if interval is negative,task will be skipped for that time
-            intervalList[0] = abs(intervalList[0]); //sign is lost here
-            entryTime = millis();
-            cycleStarted = true; //time cycle started
-            taskStarted = true; //execution cycle started
-            return false;
+          entryTime = millis();
+          cycleStarted = true;
+          intervalCounter++;  //interval counter increments even if the task is suspended
+
+          //this is the return point that gives you green signal each time 
+          if (!suspended) {
+            if (iterations > 0) { //if this is an iterated task
+              if (executionCounter == iterations) { //when the specified no. of iterations have been reached
+                if (sleepMode == PT_SLEEP_DISABLE) {
+                  disable(); //interval counter will not run in this mode
+                }
+                else {
+                  //this is the self-suspend mode.
+                  //interval counter run and you can resume the task when you need.
+                  suspend();
+                }
+                executionCounter = 0;
+                iterationEnded = true;
+                sleepIntervalCounter = 0;
+                return false;
+              }
+            }
+            executionCounter++;
+            return true;
           }
           else {
-            entryTime = millis();
-            cycleStarted = true;
-            intervalCounter++;  //interval counter increments even if the task is suspended
-
-            //this is the return point that gives you green signal each time 
-            if (!suspended) {
-              if (iterations > 0) { //if this is an iterated task
-                if (executionCounter == iterations) { //when the specified no. of iterations have been reached
-                  if (sleepMode == PT_SLEEP_DISABLE) {
-                    disable(); //interval counter will not run in this mode
-                  }
-                  else {
-                    //this is the self-suspend mode.
-                    //interval counter run and you can resume the task when you need.
-                    suspend();
-                  }
-                  executionCounter = 0;
-                  iterationEnded = true;
-                  sleepIntervalCounter = 0;
-                  return false;
-                }
-              }
-              executionCounter++;
-              return true;
-            }
-            else {
-              sleepIntervalCounter++;
-              return false;
-            }
+            sleepIntervalCounter++;
+            return false;
           }
         }
 
         //if cycle has started
         //check if a time cycle has elapsed
         else {
-          elapsedTime = millis() - entryTime;
+          elapsedTime = millis() - entryTime; //this already takes care of millis() overflow
 
           if (elapsedTime >= intervalList[intervalIndex]) {
             if (intervalIndex < (intervalCount-1)) {
@@ -354,7 +341,7 @@ bool ptScheduler::call() {
         //for spanning tasks, this only happens once.
         if (!cycleStarted) {
           if (intervalList[0] < 0) {  //if the first interval value is negative
-            intervalList[0] = abs(intervalList[0]); //sign is lost here
+            intervalList[0] = intervalList[0]; //sign is lost here
             runState = false;
             running = false;
           }
@@ -624,7 +611,7 @@ bool ptScheduler::setIteration (int32_t value) {
 
 bool ptScheduler::setInterval (time_ms_t value) {
   if (intervalCount > 0) {
-    intervalList[0] = abs(value);
+    intervalList[0] = value;
     return true;
   }
   else {
@@ -637,8 +624,8 @@ bool ptScheduler::setInterval (time_ms_t value) {
 
 bool ptScheduler::setInterval (time_ms_t value_1, time_ms_t value_2) {
   if (intervalCount > 1) {
-    intervalList[0] = abs(value_1);
-    intervalList[1] = abs(value_2);
+    intervalList[0] = value_1;
+    intervalList[1] = value_2;
     return true;
   }
   else {
@@ -713,7 +700,7 @@ bool ptScheduler::setSkipIteration (uint32_t value) {
 
 bool ptScheduler::setSkipTime (time_ms_t value) {
   if (intervalCount > 0) {
-    skipTime = abs(value);
+    skipTime = value;
     skipTimeSet = true;
     return true;
   }
