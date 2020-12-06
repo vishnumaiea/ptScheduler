@@ -11,6 +11,31 @@ To run a task, just enclose the **`call()`** function inside any **conditional s
 
 ptScheduler is good mainly for **control applications** with perodic polling of sensors, GPIOs and other parameters.
 
+# Hello World
+
+Here is the basic `Hello World` example.
+
+```cpp
+#include "ptScheduler.h"
+
+//create tasks
+ptScheduler sayHello = ptScheduler(1000);
+
+//setup function runs once
+void setup() {
+  Serial.begin(9600);
+}
+
+//infinite loop
+void loop() {
+  if (sayHello.call()) {  //executed every second
+    Serial.println("Hello World");
+  }
+
+  //add other tasks and non-blocking code here
+}
+```
+
 # Documentation
 
 Head over to the **[Wiki page](https://github.com/vishnumaiea/ptScheduler/wiki)** to learn more.
