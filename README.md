@@ -40,8 +40,8 @@ void loop() {
 
 # Documentation
 
-Head over to the **[Wiki page](https://github.com/vishnumaiea/ptScheduler/wiki)** to learn more.
+Head over to the **[Wiki page](https://github.com/vishnumaiea/ptScheduler/wiki)** to learn more about ptScheduler.
 
 # Reference
 
-See all available functions and variables in the **[Reference](https://github.com/vishnumaiea/ptScheduler/wiki/Reference)** page.
+See the reference of all available functions and variables in the **[Reference](https://github.com/vishnumaiea/ptScheduler/wiki/Reference)** page.
