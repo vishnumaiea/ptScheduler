@@ -1,0 +1,47 @@
+#######################################
+# Syntax Coloring Map
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+
+ptScheduler	KEYWORD1
+time_ms_t   KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+
+reset   KEYWORD2
+enable    KEYWORD2
+disable   KEYWORD2
+suspend   KEYWORD2
+resume    KEYWORD2
+call    KEYWORD2
+setInterval   KEYWORD2
+setInterval   KEYWORD2
+setIteration    KEYWORD2
+setSkipInterval   KEYWORD2
+setSkipIteration    KEYWORD2
+setSkipTime   KEYWORD2
+setTaskMode   KEYWORD2
+setSleepMode    KEYWORD2
+isInputError    KEYWORD2
+printStats    KEYWORD2
+
+######################################
+# Constants (LITERAL1)
+#######################################
+
+PT_MODE_EPO   LITERAL1
+PT_MODE_EIO   LITERAL1
+PT_MODE_UPO   LITERAL1
+PT_MODE_UIO   LITERAL1
+PT_MODE_EPS   LITERAL1
+PT_MODE_EIS   LITERAL1
+PT_MODE_UPS   LITERAL1
+PT_MODE_UIS   LITERAL1
+
+PT_SLEEP_DISABLE    LITERAL1
+PT_SLEEP_SUSPEND    LITERAL1
