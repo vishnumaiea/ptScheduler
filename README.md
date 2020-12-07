@@ -11,7 +11,7 @@ When you create a new ptScheduler object, you can specify the **time intervals**
 
 To run a task, just enclose the **`call()`** function inside any **conditional statements**, either inside your infinite loop or inside a function. Every time you invoke the `call()` function, it checks if the elapsed time is larger than the preset interval. If yes, it will return `true` and cause the code under the conditional block to be executed once.
 
-ptScheduler is good mainly for **control applications** that requires perodic polling of sensors, GPIOs and other IO devices. ptScheduler tasks can coexist with preemtive tasks such as **FreeRTOS** tasks.
+ptScheduler is good mainly for **control applications** that requires perodic polling of sensors, GPIOs and other IO devices. ptScheduler tasks can coexist with preemptive tasks such as **FreeRTOS** tasks.
 
 # Hello World
 
