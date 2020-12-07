@@ -9,9 +9,9 @@ Under the hood, ptScheduler uses the native `millis()` implementation. The `mill
 
 When you create a new ptScheduler object, you can specify the **time intervals** and **execution modes**. All the class member variables and functions are public and therefore gives you full control over your tasks, allowing dynamically changing the behavior of the task.
 
-To run a task, just enclose the **`call()`** function inside any **conditional statements**, either inside your infinite loop or inside a function. Every time you invoke the `call()` function, it checks the elapsed time to determine if your task has to be executed. If yes, it will return `true` and cause the code under the conditional block to be executed once.
+To run a task, just enclose the **`call()`** function inside any **conditional statements**, either inside your infinite loop or inside a function. Every time you invoke the `call()` function, it checks if the elapsed time is larger than the preset interval. If yes, it will return `true` and cause the code under the conditional block to be executed once.
 
-ptScheduler is good mainly for **control applications** with perodic polling of sensors, GPIOs and other devices.
+ptScheduler is good mainly for **control applications** that requires perodic polling of sensors, GPIOs and other IO devices. ptScheduler tasks can coexist with preemtive tasks such as **FreeRTOS** tasks.
 
 # Hello World
 
@@ -38,7 +38,7 @@ void loop() {
 }
 ```
 
-# Documentation
+# Tutorial
 
 Head over to the **[Wiki page](https://github.com/vishnumaiea/ptScheduler/wiki)** to learn more about ptScheduler.
 
