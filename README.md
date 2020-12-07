@@ -38,7 +38,7 @@ void loop() {
 }
 ```
 
-# Tutorial
+# Tutorial and Documentation
 
 Head over to the **[Wiki page](https://github.com/vishnumaiea/ptScheduler/wiki)** to learn more about ptScheduler.
 
