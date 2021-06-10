@@ -7,11 +7,11 @@
 // periodic tasks without using delay() or millis() routines.
 
 // Author : Vishnu Mohanan (@vishnumaiea)
-// Version : 1.1.0
+// Version : 1.1.1
 // License : MIT
-// Src : https://github.com/vishnumaiea/ptScheduler
+// Source : https://github.com/vishnumaiea/ptScheduler
 
-// Last modified : +05:30 01:20:04 PM 06-12-2020, Sunday
+// Last modified : +05:30 15:38:47 PM 10-06-2021, Thursday
 
 //=======================================================================//
 //includes
@@ -63,13 +63,13 @@ class ptScheduler {
     uint32_t skipIteration = 0; //number of iterations to skip
     time_ms_t skipTime = 0; //time to skip before running a task
 
-    bool enabled = true;  //a task is allowed to run or not
-    bool taskStarted = false; //a task has started an execution cycle
-    bool cycleStarted = false; //a task has started an interval cycle
-    bool suspended = false; //a task is prevented from running until further activation
+    bool taskEnabled = true;  //task is allowed to run or not
+    bool taskStarted = false; //task has started an execution cycle
+    bool cycleStarted = false; //task has started an interval cycle
+    bool taskSuspended = false; //a task is prevented from running until further activation
     bool iterationEnded = false;  //end of an iteration set
-    bool running = false; //a task is running
-    bool runState;  //the current execution state of a task
+    bool taskRunning = false; //a task is running
+    bool taskRunState;  //the current execution state of a task
 
     bool inputError = false;  //if any user input parameters are wrong
     bool skipIntervalSet = false; //if skip interval was set
@@ -86,6 +86,8 @@ class ptScheduler {
     void disable();  //block a task from running and reset all state variables and counters
     void suspend();  //block a task from running but without resetting anything. interval counter will still run.
     void resume();  //resume a suspended task
+    bool oneshot();
+    bool spanning();
     bool call();  //the task invokation call
     bool setInterval (time_ms_t value);  //dynamically set task interval
     bool setInterval (time_ms_t value_1, time_ms_t value_2);  //update two interval values. only for tasks instantiated with >= intervals

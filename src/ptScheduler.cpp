@@ -7,16 +7,16 @@
 // periodic tasks without using delay() or millis() routines.
 
 // Author : Vishnu Mohanan (@vishnumaiea)
-// Version : 1.1.0
+// Version : 1.1.1
 // License : MIT
-// Src : https://github.com/vishnumaiea/ptScheduler
+// Source : https://github.com/vishnumaiea/ptScheduler
 
-// Last modified : +05:30 01:20:10 PM 06-12-2020, Sunday
+// Last modified : +05:30 16:13:45 PM 10-06-2021, Thursday
 
 //=======================================================================//
 
-//  Read the header file for better understanding of how this library is
-//  organized. I have added plenty of comments whereever possible.
+//  Read the header file for a better understanding of how this library is
+//  organized. I have added plenty of comments to help you understand it.
 
 //=======================================================================//
 //includes
@@ -31,10 +31,11 @@
 
 ptScheduler::ptScheduler (time_ms_t interval_1) {
   intervalList = new time_ms_t(1);  //create a new list
+  // intervalList = (time_ms_t*) malloc(sizeof(time_ms_t));  //create a new list
   intervalList[0] = interval_1;
   intervalCount = 1;
-  intervalIndex = 0;
-  // enabled = true;
+  // intervalIndex = 0;
+  // taskEnabled = true;
 
   // taskMode = PT_MODE_EPO;  //default mode
   // sleepMode = PT_SLEEP_DISABLE; //task will be disabled when an iteration completes
@@ -49,7 +50,7 @@ ptScheduler::ptScheduler (uint8_t mode, time_ms_t interval_1) {
   intervalList[0] = interval_1;
   intervalCount = 1;
   intervalIndex = 0;
-  enabled = true;
+  taskEnabled = true;
   sleepMode = PT_SLEEP_DISABLE;
 
   switch (mode) {
@@ -78,7 +79,7 @@ ptScheduler::ptScheduler (uint8_t mode, time_ms_t interval_1, time_ms_t interval
   intervalList[1] = interval_2;
   intervalCount = 2;
   intervalIndex = 0;
-  enabled = true;
+  taskEnabled = true;
   sleepMode = PT_SLEEP_DISABLE;
 
   switch (mode) {
@@ -112,7 +113,7 @@ ptScheduler::ptScheduler (uint8_t mode, time_ms_t* listPtr, uint8_t listLength) 
     intervalCount = listLength;
     
     intervalIndex = 0;
-    enabled = true;
+    taskEnabled = true;
     sleepMode = PT_SLEEP_DISABLE;
     
     //now we have to determine if the specified mode is possible with the input parameters
@@ -232,84 +233,7 @@ bool ptScheduler::call() {
     case PT_MODE_EIO:
     case PT_MODE_UPO:
     case PT_MODE_UIO:
-      if (enabled) {
-        //if an execution cycle has not started, yet skip for the time set
-        if ((!taskStarted) && (skipIntervalSet || skipIntervalSet || skipTimeSet)) {
-          if (entryTime == 0) { //this is one way to find if an exe cycle not started
-            entryTime = millis();
-            return false;
-          }
-          else {
-            elapsedTime = millis() - entryTime;
-
-            if (elapsedTime < skipTime) { //skip time is set when skip time or skip interval are set
-              return false;
-            }
-            else {
-              taskStarted = true;
-            }
-          }
-        }
-
-        //start a new time cycle
-        if (!cycleStarted) { //if a time cycle has not started
-          entryTime = millis();
-          cycleStarted = true;
-          intervalCounter++;  //interval counter increments even if the task is suspended
-
-          //this is the return point that gives you green signal each time 
-          if (!suspended) {
-            if (iterations > 0) { //if this is an iterated task
-              if (executionCounter == iterations) { //when the specified no. of iterations have been reached
-                if (sleepMode == PT_SLEEP_DISABLE) {
-                  disable(); //interval counter will not run in this mode
-                }
-                else {
-                  //this is the self-suspend mode.
-                  //interval counter run and you can resume the task when you need.
-                  suspend();
-                }
-                executionCounter = 0;
-                iterationEnded = true;
-                sleepIntervalCounter = 0;
-                return false;
-              }
-            }
-            executionCounter++;
-            return true;
-          }
-          else {
-            sleepIntervalCounter++;
-            return false;
-          }
-        }
-
-        //if cycle has started
-        //check if a time cycle has elapsed
-        else {
-          elapsedTime = millis() - entryTime; //this already takes care of millis() overflow
-
-          if (elapsedTime >= intervalList[intervalIndex]) {
-            if (intervalIndex < (intervalCount-1)) {
-              intervalIndex++;
-            }
-            else {
-              intervalIndex = 0;
-            }
-
-            cycleStarted = false; //so that we can start a new time cycle
-            exitTime = entryTime + elapsedTime;
-            return false;
-          }
-          else {
-            return false;
-          }
-        }
-      }
-
-      else {
-        return false; //if not activated
-      }
+      return oneshot();
       
       break;
 
@@ -317,109 +241,7 @@ bool ptScheduler::call() {
     case PT_MODE_EIS:
     case PT_MODE_UPS:
     case PT_MODE_UIS:
-      if (enabled) {
-        //if an execution cycle has not started, yet skip for the time set.
-        if ((!taskStarted) && (skipIntervalSet || skipIntervalSet || skipTimeSet)) {
-          if (entryTime == 0) { //this is one way to find if an exe cycle not started
-            entryTime = millis();
-            return false;
-          }
-          else {
-            elapsedTime = millis() - entryTime;
-
-            if (elapsedTime < skipTime) { //skip time is set when skip time or skip interval are set
-              return false;
-            }
-            else {
-              taskStarted = true;
-              runState = true;
-            }
-          }
-        }   
-
-        //if a cycle has not started yet.
-        //for spanning tasks, this only happens once.
-        if (!cycleStarted) {
-          if (intervalList[0] < 0) {  //if the first interval value is negative
-            intervalList[0] = intervalList[0]; //sign is lost here
-            runState = false;
-            running = false;
-          }
-          else {  //if interval is not negative
-            runState = true;
-            running = true;
-            executionCounter++; //this increments before the interval counter
-          }
-          entryTime = millis();
-          cycleStarted = true;
-          iterationEnded = false;
-          taskStarted = true;
-          intervalIndex = 0;
-          intervalCounter = 0;
-          // printStats();
-        }
-        else {
-          elapsedTime = millis() - entryTime;
-
-          if (elapsedTime >= intervalList[intervalIndex]) {
-            if (intervalIndex < (intervalCount-1)) {
-              intervalIndex++;
-            }
-            else {
-              intervalIndex = 0;
-            }
-
-            intervalCounter++;
-            exitTime = entryTime + elapsedTime;
-            entryTime = millis();
-
-            if (!suspended) {
-              if (iterations > 0) { //if this is an iterated task
-                if (executionCounter == iterationsExtended) { //when the specified no. of iterations have been reached
-                  if (sleepMode == PT_SLEEP_DISABLE) {
-                    disable(); //interval counter will not run in this mode
-                  }
-                  else {
-                    //this is the self-suspend mode.
-                    suspend();
-                  }
-                  //when an iteration has completed
-                  // printStats();
-                  executionCounter = 0; //so that we can start a new iteration
-                  // intervalCounter = 0;
-                  runState = false;
-                  running = false;
-                  iterationEnded = true;
-                  sleepIntervalCounter = 0;
-                  // intervalIndex = 0;  //you have to manually reset this, if you want
-                  return false;
-                }
-              }
-
-              //if not an iterated task
-              runState = (runState) ? false : true; //toggle the state
-
-              if (runState) {
-                executionCounter++;
-                running = true;
-              }
-              else {
-                running = false;
-              }
-            }
-            else {  //if suspended
-              // printStats();
-              sleepIntervalCounter++; //time elapsed after iteration is complete
-              return false;
-            }
-          }
-        }
-        return runState;
-      }
-
-      else { //if not activated
-        return false;
-      }
+      return spanning();
 
       break;
 
@@ -428,6 +250,194 @@ bool ptScheduler::call() {
   }
   
   return false;
+}
+
+//=======================================================================//
+//implements the spanning task logic.
+
+bool ptScheduler::spanning() {
+  if (taskEnabled) {
+    //if an execution cycle has not started, yet skip for the time set.
+    if ((!taskStarted) && (skipIntervalSet || skipIntervalSet || skipTimeSet)) {
+      if (entryTime == 0) { //this is one way to find if an exe cycle not started
+        entryTime = millis();
+        return false;
+      }
+      else {
+        elapsedTime = millis() - entryTime;
+
+        if (elapsedTime < skipTime) { //skip time is set when skip time or skip interval are set
+          return false;
+        }
+        else {
+          taskStarted = true;
+          taskRunState = true;
+        }
+      }
+    }   
+
+    //if an interval cycle has not started yet.
+    //for spanning tasks, this only happens once.
+    if (!cycleStarted) {
+      taskRunState = true;
+      taskRunning = true;
+      executionCounter++; //this increments before the interval counter
+      entryTime = millis();
+      cycleStarted = true;
+      iterationEnded = false;
+      taskStarted = true;
+      intervalIndex = 0;
+      intervalCounter = 0;
+      // printStats();
+    }
+    else {  //if an interval cycle has started
+      elapsedTime = millis() - entryTime;
+
+      if (elapsedTime >= intervalList[intervalIndex]) {
+        if (intervalIndex < (intervalCount-1)) {
+          intervalIndex++;
+        }
+        else {
+          intervalIndex = 0;
+        }
+
+        intervalCounter++;
+        exitTime = entryTime + elapsedTime;
+        entryTime = millis();
+
+        if (!taskSuspended) {
+          if (iterations > 0) { //if this is an iterated task
+            if (executionCounter == iterationsExtended) { //when the specified no. of iterations have been reached
+              if (sleepMode == PT_SLEEP_DISABLE) {
+                disable(); //interval counter will not run in this mode
+              }
+              else {
+                //this is the self-suspend mode.
+                suspend();
+              }
+              //when an iteration has completed
+              // printStats();
+              executionCounter = 0; //so that we can start a new iteration
+              // intervalCounter = 0;
+              taskRunState = false;
+              taskRunning = false;
+              iterationEnded = true;
+              sleepIntervalCounter = 0;
+              // intervalIndex = 0;  //you have to manually reset this, if you want
+              return false;
+            }
+          }
+
+          //if not an iterated task
+          taskRunState = (taskRunState) ? false : true; //toggle the state
+
+          if (taskRunState) {
+            executionCounter++;
+            taskRunning = true;
+          }
+          else {
+            taskRunning = false;
+          }
+        }
+        else {  //if suspended
+          // printStats();
+          sleepIntervalCounter++; //time elapsed after iteration is complete
+          return false;
+        }
+      }
+    }
+    return taskRunState;
+  }
+
+  else { //if not activated
+    return false;
+  }
+} 
+
+//=======================================================================//
+//implements the logic of oneshot tasks.
+
+bool ptScheduler::oneshot() {
+  if (taskEnabled) {
+    //if an execution cycle has not started, yet skip for the time set
+    if ((!taskStarted)) {
+      if (skipIntervalSet || skipIntervalSet || skipTimeSet) {
+        if (entryTime == 0) { //this is one way to find if an exe cycle not started
+          entryTime = millis();
+          return false;
+        }
+        else {
+          // elapsedTime = millis() - entryTime;
+
+          if ((millis() - entryTime) < skipTime) { //skip time is set when skip time or skip interval are set
+            return false;
+          }
+          else {
+            taskStarted = true;
+          }
+        }
+      }
+    }
+
+    //start a new time cycle
+    if (!cycleStarted) { //if a time cycle has not started
+      entryTime = millis();
+      cycleStarted = true;
+      intervalCounter++;  //interval counter increments even if the task is suspended
+
+      //this is the return point that gives you green signal each time 
+      if (!taskSuspended) {
+        if (iterations > 0) { //if this is an iterated task
+          if (executionCounter == iterations) { //when the specified no. of iterations have been reached
+            if (sleepMode == PT_SLEEP_DISABLE) {
+              disable(); //interval counter will not run in this mode
+            }
+            else {
+              //this is the self-suspend mode.
+              //interval counter run and you can resume the task when you need.
+              suspend();
+            }
+            executionCounter = 0;
+            iterationEnded = true;
+            sleepIntervalCounter = 0;
+            return false;
+          }
+        }
+        executionCounter++;
+        return true;
+      }
+      else {
+        sleepIntervalCounter++;
+        return false;
+      }
+    }
+
+    //if cycle has started
+    //check if a time cycle has elapsed
+    else {
+      elapsedTime = millis() - entryTime; //this already takes care of millis() overflow
+
+      if (elapsedTime >= intervalList[intervalIndex]) {
+        if (intervalIndex < (intervalCount-1)) {
+          intervalIndex++;
+        }
+        else {
+          intervalIndex = 0;
+        }
+
+        cycleStarted = false; //so that we can start a new time cycle
+        // exitTime = entryTime + elapsedTime;
+        return false;
+      }
+      else {
+        return false;
+      }
+    }
+  }
+
+  else {
+    return false; //if not activated
+  }
 }
 
 //=======================================================================//
@@ -473,20 +483,20 @@ void ptScheduler::printStats() {
   debugSerial.println((uint32_t)executionCounter);
   debugSerial.print(F("Iteration Counter : "));
   debugSerial.println((uint32_t)iterationCounter);
-  debugSerial.print(F("Activated ? : "));
-  debugSerial.println(enabled);
+  debugSerial.print(F("Enabled ? : "));
+  debugSerial.println(taskEnabled);
   debugSerial.print(F("Suspended ? : "));
-  debugSerial.println(suspended);
+  debugSerial.println(taskSuspended);
   debugSerial.print(F("Task Started ? : "));
   debugSerial.println(taskStarted);
   debugSerial.print(F("Cycle Started ? : "));
   debugSerial.println(cycleStarted);
   debugSerial.print(F("Running ? : "));
-  debugSerial.println(running);
+  debugSerial.println(taskRunning);
   debugSerial.print(F("Ended ? : "));
   debugSerial.println(iterationEnded);
   debugSerial.print(F("Run State : "));
-  debugSerial.println(runState);
+  debugSerial.println(taskRunState);
   debugSerial.print(F("Input Error : "));
   debugSerial.println(inputError);
   debugSerial.print(F("Iterations : "));
@@ -499,14 +509,14 @@ void ptScheduler::printStats() {
 //only active tasks are executed regardless of their turn for execution.
 
 void ptScheduler::enable() {
-  enabled = true;
+  taskEnabled = true;
 }
 
 //=======================================================================//
 //suspends a task. interval counter will continue to increment in this mode.
 
 void ptScheduler::suspend() {
-  suspended = true;
+  taskSuspended = true;
 }
 
 //=======================================================================//
@@ -514,7 +524,7 @@ void ptScheduler::suspend() {
 //was suspended.
 
 void ptScheduler::resume() {
-  suspended = false;
+  taskSuspended = false;
   // intervalCounter = 0;
 }
 
@@ -526,13 +536,13 @@ void ptScheduler::resume() {
 //you have to call either enable() or reset() functions to start execution again.
 
 void ptScheduler::disable() {
-  enabled = false;
+  taskEnabled = false;
   taskStarted = false;
   cycleStarted = false;
-  suspended = false;
+  taskSuspended = false;
   iterationEnded = true;
-  running = false;
-  runState = false;
+  taskRunning = false;
+  taskRunState = false;
 
   entryTime = 0;
   exitTime = 0;
