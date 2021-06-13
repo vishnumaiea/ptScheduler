@@ -7,11 +7,11 @@
 // periodic tasks without using delay() or millis() routines.
 
 // Author : Vishnu Mohanan (@vishnumaiea)
-// Version : 1.1.1
+// Version : 1.1.2
 // License : MIT
 // Source : https://github.com/vishnumaiea/ptScheduler
 
-// Last modified : +05:30 15:38:47 PM 10-06-2021, Thursday
+// Last modified : +05:30 11:59:11 AM 13-06-2021, Sunday
 
 //=======================================================================//
 //includes
@@ -86,8 +86,8 @@ class ptScheduler {
     void disable();  //block a task from running and reset all state variables and counters
     void suspend();  //block a task from running but without resetting anything. interval counter will still run.
     void resume();  //resume a suspended task
-    bool oneshot();
-    bool spanning();
+    bool oneshot(); //logic for oneshot tasks
+    bool spanning();  //logic for spanning tasks
     bool call();  //the task invokation call
     bool setInterval (time_ms_t value);  //dynamically set task interval
     bool setInterval (time_ms_t value_1, time_ms_t value_2);  //update two interval values. only for tasks instantiated with >= intervals

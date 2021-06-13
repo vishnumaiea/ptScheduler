@@ -2,6 +2,34 @@
 
 #
 
+**+05:30 11:59:55 AM 13-06-2021, Sunday**
+
+  Ready for a next release with important bug fixes. **Version 1.1.2** 🎉
+
+#
+
+**+05:30 03:42:00 PM 11-06-2021, Friday**
+
+  When does a task start? - A task starts when the first `call()` is made 📋
+
+  When a task is resumed, should it respect the skip parameters? Currently, this is not respected. But what if I want to have that feature? One method is to disable the task and later enable it, instead of suspending and resuming. But this also causes every counter to freeze and thus you won't be able to read the sleep interval counters. You will have to manually and arbitrarily enable the task. But this assures that the skip parameters are respected.
+
+  Another method is to keep the task sleep mode to `PT_SLEEP_SUSPEND` and call `resume()` to the resume the task. But just before calling `resume()`, set `taskStarted` state variable to `false`. This is because it is the `taskStarted` flag that determines if an interval has to be skipped. This flag is set to `true` when you invoke `call()` for the first time (after a duration that is greater than the set skip interval).
+
+  So when we do the following for example, the skip intervals are respected.
+
+  ```cpp
+    eioTask.taskStarted = false;
+    eioTask.resume();
+  ```
+#
+
+**+05:30 09:46:25 PM 10-06-2021, Thursday**
+
+  Found a bug 🐞 in the `oneshot()` and `spanning()` routines (lines 261 and 364). When checking for skip parameters, the conditional statement had two instances of `skipIntervalSet`. One should have been `skipIterationSet`. Due to this, `setSkipIteration()` was not working for iterated tasks. FIXED ✅ [Issue #2](https://github.com/vishnumaiea/ptScheduler/issues/2#issue-919728782)
+
+#
+
 **+05:30 04:16:52 PM 10-06-2021, Thursday**
 
   I plan to optimize the interface of `ptScheduler` by removing the redundant modes. There only needs to be four things to consider when defining a task; oneshot or spanning, and periodic or iterated. That yields 4 modes. Every other modes can be implemented using these four base properties. TODO ⌛
@@ -22,17 +50,17 @@
 
 **+05:30 12:39:54 AM 08-12-2020, Tuesday**
 
-  I have to implement a new "counter only" mode. It will simply increment a counter (`intervalCounter`) without any other overheads.
+  I have to implement a new "counter only" mode. It will simply increment a counter (`intervalCounter`) without any other overheads 💡
 
 #
 
 **+05:30 09:20:43 PM 06-12-2020, Sunday**
 
-  Changed `time_ms_t` type to `uint64_t` from `int64_t`. This is because the `millis()` function returns unsigned value always, and we do not use negative interval values. So why waste that extra half? Also, I just came to notice that my code is already overflow safe. For example looks the code below,
+  Changed `time_ms_t` type to `uint64_t` from `int64_t`. This is because the `millis()` function returns unsigned value always, and we do not use negative interval values. So why waste that extra half? Also, I just came to notice that the code is already overflow safe. For example look at the code below,
 
     elapsedTime = millis() - entryTime;
 
-  Assume `millis()` was overflown and the current value is now 100. Entry time was saved before the overflow event. So it should have a large value. Let it be 4294967280 which is 15 less than the max value of a 32-bit unsigned value which is 4294967295. So the result would be 184 which is actually the correct time elapsed. Why 184 but not 185 is because one increment was taken for incrementing to 0.
+  Assume `millis()` was overflown and the current value is now 100. Entry time was saved before the overflow event. So it should have a large value. Let it be 4294967280 which is 15 less than the max value of a 32-bit unsigned value which is 4294967295. So the result would be 184, which is actually the correct time elapsed. Why 184 but not 185 is because one increment was taken for incrementing to 0.
 
 #
 

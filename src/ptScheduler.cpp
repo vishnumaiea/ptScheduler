@@ -7,11 +7,11 @@
 // periodic tasks without using delay() or millis() routines.
 
 // Author : Vishnu Mohanan (@vishnumaiea)
-// Version : 1.1.1
+// Version : 1.1.2
 // License : MIT
 // Source : https://github.com/vishnumaiea/ptScheduler
 
-// Last modified : +05:30 16:13:45 PM 10-06-2021, Thursday
+// Last modified : +05:30 11:59:07 AM 13-06-2021, Sunday
 
 //=======================================================================//
 
@@ -258,7 +258,7 @@ bool ptScheduler::call() {
 bool ptScheduler::spanning() {
   if (taskEnabled) {
     //if an execution cycle has not started, yet skip for the time set.
-    if ((!taskStarted) && (skipIntervalSet || skipIntervalSet || skipTimeSet)) {
+    if ((!taskStarted) && (skipIntervalSet || skipIterationSet || skipTimeSet)) {
       if (entryTime == 0) { //this is one way to find if an exe cycle not started
         entryTime = millis();
         return false;
@@ -317,7 +317,12 @@ bool ptScheduler::spanning() {
               }
               //when an iteration has completed
               // printStats();
+
+              //when a task suspends itself, it also resets the execution counter.
+              //because of this, when you resume a suspended task the next time,
+              //the number of iterations are executed once again.
               executionCounter = 0; //so that we can start a new iteration
+              
               // intervalCounter = 0;
               taskRunState = false;
               taskRunning = false;
@@ -361,7 +366,7 @@ bool ptScheduler::oneshot() {
   if (taskEnabled) {
     //if an execution cycle has not started, yet skip for the time set
     if ((!taskStarted)) {
-      if (skipIntervalSet || skipIntervalSet || skipTimeSet) {
+      if (skipIntervalSet || skipIterationSet || skipTimeSet) {
         if (entryTime == 0) { //this is one way to find if an exe cycle not started
           entryTime = millis();
           return false;
@@ -397,7 +402,16 @@ bool ptScheduler::oneshot() {
               //interval counter run and you can resume the task when you need.
               suspend();
             }
+            //when a task suspends itself, it also resets the execution counter.
+            //because of this, when you resume a suspended task the next time,
+            //the number of iterations are executed once again. a side effect of this
+            //is that, when you suspend a task before an iteration is completed, this
+            //will cause the task to start a new iteration when you resume it next time.
+            //you may want the actual iteration to resume. if that's the requirement,
+            //save the execution counter value before suspending and reload it before
+            //resuming.
             executionCounter = 0;
+
             iterationEnded = true;
             sleepIntervalCounter = 0;
             return false;

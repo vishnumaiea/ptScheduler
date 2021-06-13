@@ -1,6 +1,6 @@
 {
     "name": "ptScheduler",
-    "keywords": "timer, scheduler, tasks, delay",
+    "keywords": "timer, timing, scheduler, tasks, delay",
     "description": "Arduino library for writing non-blocking periodic tasks without using delay or millis routines.",
     "repository":
     {
@@ -13,7 +13,7 @@
         "url": "https://github.com/vishnumaiea",
         "maintainer": true
     },
-    "version": "1.1.1",
+    "version": "1.1.2",
     "license": "MIT",
     "frameworks": "arduino",
     "platforms": "*"

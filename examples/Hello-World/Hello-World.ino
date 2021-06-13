@@ -7,11 +7,11 @@
 // periodic tasks without using delay() or millis() routines.
 
 // Author : Vishnu Mohanan (@vishnumaiea)
-// Version : 1.1.1
+// Version : 1.1.2
 // License : MIT
 // Source : https://github.com/vishnumaiea/ptScheduler
 
-// Last modified : +05:30 15:38:02 PM 10-06-2021, Thursday
+// Last modified : +05:30 11:58:59 AM 13-06-2021, Sunday
 
 //=======================================================================//
 //description
@@ -27,7 +27,7 @@
 //globals
 
 //create tasks
-ptScheduler sayHello = ptScheduler(1000); //Equal, Periodic, Oneshot
+ptScheduler sayHello(1000); //Equal, Periodic, Oneshot
 
 //=======================================================================//
 //setup function runs once

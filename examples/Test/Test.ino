@@ -7,11 +7,11 @@
 // periodic tasks without using delay() or millis() routines.
 
 // Author : Vishnu Mohanan (@vishnumaiea)
-// Version : 1.1.1
+// Version : 1.1.2
 // License : MIT
 // Source : https://github.com/vishnumaiea/ptScheduler
 
-// Last modified : +05:30 15:38:12 PM 10-06-2021, Thursday
+// Last modified : +05:30 11:59:03 AM 13-06-2021, Sunday
 
 //=======================================================================//
 //description
@@ -59,6 +59,9 @@ void setup() {
 
   eioTask.setIteration(1);
   eioTask.setSleepMode(PT_SLEEP_SUSPEND);
+  eioTask.setSkipIteration(3);
+  // eioTask.setSkipTime(1000);
+  eioTask.suspend();
 
   eisTask.setIteration(5);
   eisTask.setSleepMode(PT_SLEEP_SUSPEND);
@@ -70,8 +73,17 @@ void setup() {
 //=======================================================================//
 
 void loop() {
-  // uisFunction();
+  if (Serial.available() > 0) {
+    String inputString = Serial.readString();
+    if (inputString == "1") {
+      // eioTask.taskStarted = false;
+      // eioTask.enable();
+      // eioTask.resume();
+      eioTask.reset();
+    }
+  }
   eioFunction();
+  // epoFunction();
 }
 
 //=======================================================================//
@@ -148,9 +160,15 @@ void eioFunction() {
   }
   else if (plot.call()) {
     Serial.println("0");
-    if (eioTask.intervalCounter == 10) {
-      eioTask.resume();
-    }
+    // if (eioTask.intervalCounter == 5) {
+    //   eioTask.resume();
+    // }
+    // if (eioTask.intervalCounter == 10) {
+    //   eioTask.resume();
+    // }
+    // if (eioTask.intervalCounter == 12) {
+    //   eioTask.resume();
+    // }
   }
 }
 
@@ -161,16 +179,16 @@ void epoFunction() {
   if (epoTask.call()) {
     Serial.println("3");
 
-    if ((epoTask.intervalCounter >= 5) && (epoTask.intervalCounter <= 10)) {
-      epoTask.suspend();
-    }
+    // if ((epoTask.intervalCounter >= 5) && (epoTask.intervalCounter <= 10)) {
+    //   epoTask.suspend();
+    // }
   }
   else if (plot.call()) {
     Serial.println("0");
 
-    if (epoTask.intervalCounter > 10) {
-      epoTask.resume();
-    }
+    // if (epoTask.intervalCounter > 10) {
+    //   epoTask.resume();
+    // }
   }
 }
 
