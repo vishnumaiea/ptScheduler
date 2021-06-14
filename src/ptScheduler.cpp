@@ -7,11 +7,11 @@
 // periodic tasks without using delay() or millis() routines.
 
 // Author : Vishnu Mohanan (@vishnumaiea)
-// Version : 1.1.2
+// Version : 2.0.0
 // License : MIT
 // Source : https://github.com/vishnumaiea/ptScheduler
 
-// Last modified : +05:30 11:59:07 AM 13-06-2021, Sunday
+// Last modified : +05:30 18:21:59 PM 14-06-2021, Monday
 
 //=======================================================================//
 
@@ -37,7 +37,7 @@ ptScheduler::ptScheduler (time_ms_t interval_1) {
   // intervalIndex = 0;
   // taskEnabled = true;
 
-  // taskMode = PT_MODE_EPO;  //default mode
+  taskMode = PT_MODE_EPO;  //default mode
   // sleepMode = PT_SLEEP_DISABLE; //task will be disabled when an iteration completes
 }
 
@@ -172,8 +172,18 @@ ptScheduler::~ptScheduler() {
 }
 
 //=======================================================================//
-//allows you to chnage modes dynamically.
-//returns true is the mode was correct.
+//you wouldn't beleive me if I said it took me a whole day to figure out
+//how to implement this logic lol.
+
+inline void ptScheduler::timeElapsed() {
+  uint32_t timeDelta = uint32_t(micros() - entryTime);
+  elapsedTime += uint32_t(timeDelta - prevTimeDelta); //this will always return the absolute difference
+  prevTimeDelta = timeDelta;
+}
+
+//=======================================================================//
+//allows you to change modes dynamically.
+//returns true if the mode was correct.
 
 bool ptScheduler::setTaskMode (uint8_t mode) {
   switch (mode) { //check if the input mode is valid
@@ -260,11 +270,12 @@ bool ptScheduler::spanning() {
     //if an execution cycle has not started, yet skip for the time set.
     if ((!taskStarted) && (skipIntervalSet || skipIterationSet || skipTimeSet)) {
       if (entryTime == 0) { //this is one way to find if an exe cycle not started
-        entryTime = millis();
+        elapsedTime = 0;
+        entryTime = micros();
         return false;
       }
       else {
-        elapsedTime = millis() - entryTime;
+        elapsedTime = micros() - entryTime;
 
         if (elapsedTime < skipTime) { //skip time is set when skip time or skip interval are set
           return false;
@@ -282,7 +293,8 @@ bool ptScheduler::spanning() {
       taskRunState = true;
       taskRunning = true;
       executionCounter++; //this increments before the interval counter
-      entryTime = millis();
+      elapsedTime = 0;  //reset so that we can start a new cycle
+      entryTime = micros();
       cycleStarted = true;
       iterationEnded = false;
       taskStarted = true;
@@ -291,7 +303,26 @@ bool ptScheduler::spanning() {
       // printStats();
     }
     else {  //if an interval cycle has started
-      elapsedTime = millis() - entryTime;
+      // elapsedTime = millis() - entryTime;
+
+      //below three lines is a method to circumvent the millis() overflow event.
+      //the default Arduino implementation of millis returns a uint32_t value.
+      //this value overflows once it reaches 4294967295. this means, the maximum
+      //time difference we can have between the entry point and exit point is
+      //4294967296 milliseconds. any intervals larger than that would not work.
+      //you might not use such a large interval, but it is a limitation nevertheless.
+      //this limitation can become a problem if you use micros function. with micros
+      //function, the largest interval we can detect is around 70 mins. that might fall
+      //within a practical interval value. therefore we must circumvent that limitation.
+      //to do this, every time this function is invoked, we will take the difference
+      //between the current elapsed time (millis()-entryTime) and the previous known
+      //elapsed time. this is to get the absolute time difference from the cumulative
+      //time difference (every time we do millis()-entryTime, we get the cumulative
+      //time difference). the absolute difference is added to 64-bit elapsedTime.
+      // uint32_t timeDelta = uint32_t(millis() - entryTime);
+      // elapsedTime += uint32_t(timeDelta - prevTimeDelta); //this will always return the absolute difference
+      // prevTimeDelta = timeDelta;
+      timeElapsed();  //get the elapsed time
 
       if (elapsedTime >= intervalList[intervalIndex]) {
         if (intervalIndex < (intervalCount-1)) {
@@ -303,7 +334,7 @@ bool ptScheduler::spanning() {
 
         intervalCounter++;
         exitTime = entryTime + elapsedTime;
-        entryTime = millis();
+        entryTime = micros();
 
         if (!taskSuspended) {
           if (iterations > 0) { //if this is an iterated task
@@ -368,13 +399,14 @@ bool ptScheduler::oneshot() {
     if ((!taskStarted)) {
       if (skipIntervalSet || skipIterationSet || skipTimeSet) {
         if (entryTime == 0) { //this is one way to find if an exe cycle not started
-          entryTime = millis();
+          elapsedTime = 0;
+          entryTime = micros();
           return false;
         }
         else {
           // elapsedTime = millis() - entryTime;
 
-          if ((millis() - entryTime) < skipTime) { //skip time is set when skip time or skip interval are set
+          if ((micros() - entryTime) < skipTime) { //skip time is set when skip time or skip interval are set
             return false;
           }
           else {
@@ -386,7 +418,9 @@ bool ptScheduler::oneshot() {
 
     //start a new time cycle
     if (!cycleStarted) { //if a time cycle has not started
-      entryTime = millis();
+      elapsedTime = 0;
+      prevTimeDelta = 0;
+      entryTime = micros();
       cycleStarted = true;
       intervalCounter++;  //interval counter increments even if the task is suspended
 
@@ -429,7 +463,8 @@ bool ptScheduler::oneshot() {
     //if cycle has started
     //check if a time cycle has elapsed
     else {
-      elapsedTime = millis() - entryTime; //this already takes care of millis() overflow
+      // elapsedTime = millis() - entryTime; //this already takes care of millis() overflow
+      timeElapsed();
 
       if (elapsedTime >= intervalList[intervalIndex]) {
         if (intervalIndex < (intervalCount-1)) {

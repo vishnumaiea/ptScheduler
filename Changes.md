@@ -2,6 +2,22 @@
 
 #
 
+**+05:30 06:19:25 PM 14-06-2021, Monday**
+
+  Let's commit this version as **Version 2.0.0** since this will be incompatible with the previous version.
+
+#
+
+**+05:30 03:50:27 PM 14-06-2021, Monday**
+
+  Added `millis()` overflow workarounds. This is accomplished with a new function `timeElapsed()`. I also replaced all `millis()` instances with `micros()`.
+
+  It is working now, but for some reason the `Hello-World.ino` prints "Hello World" twice every second! 😅
+
+  Okay I found it. It was necessary to reset `prevTimeDelta` along with `elapsedTime` at the point of entry. Now it works flawlessly 🤍
+
+#
+
 **+05:30 11:59:55 AM 13-06-2021, Sunday**
 
   Ready for a next release with important bug fixes. **Version 1.1.2** 🎉

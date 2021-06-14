@@ -1,3 +1,7 @@
 {
-    "board": "arduino:avr:uno"
+    "board": "esp32:esp32:esp32doit-devkit-v1",
+    "sketch": "examples\\Basic\\Basic.ino",
+    "configuration": "FlashFreq=80,UploadSpeed=921600,DebugLevel=none",
+    "port": "COM12",
+    "programmer": "arduino:avrispmkii"
 }

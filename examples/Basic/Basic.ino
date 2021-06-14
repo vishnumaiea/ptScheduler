@@ -7,11 +7,11 @@
 // periodic tasks without using delay() or millis() routines.
 
 // Author : Vishnu Mohanan (@vishnumaiea)
-// Version : 1.1.2
+// Version : 2.0.0
 // License : MIT
 // Source : https://github.com/vishnumaiea/ptScheduler
 
-// Last modified : +05:30 11:58:55 AM 13-06-2021, Sunday
+// Last modified : +05:30 18:18:44 PM 14-06-2021, Monday
 
 //=======================================================================//
 //description
@@ -33,7 +33,7 @@
 //defines
 
 #define LED1 LED_BUILTIN
-#define LED2 12
+#define LED2 2
 
 //=======================================================================//
 //globals
@@ -41,14 +41,14 @@
 //create tasks
 ptScheduler sayHello = ptScheduler(1000);
 ptScheduler sayName = ptScheduler(3000);
-ptScheduler basicBlink = ptScheduler(1000);
+ptScheduler basicBlink = ptScheduler(500000);
 ptScheduler multiBlink = ptScheduler(PT_MODE_EIO, 100); //Equal, Iterated, Oneshot
 
 //=======================================================================//
 //setup function runs once
 
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(115200);
   pinMode(LED1, OUTPUT);
   pinMode(LED2, OUTPUT);
 
@@ -62,24 +62,24 @@ void setup() {
 //infinite loop
 
 void loop() {
-  //executed every second
-  if (sayHello.call()) {
-    Serial.println("Hello World");
-  }
+  // //executed every second
+  // if (sayHello.call()) {
+  //   Serial.println("Hello World");
+  // }
   
-  //skips first time and executed every 3 seconds
-  if (sayName.call()) {
-    Serial.println("I am ptScheduler");
-    multiBlink.enable();
-  }
+  // //skips first time and executed every 3 seconds
+  // if (sayName.call()) {
+  //   Serial.println("I am ptScheduler");
+  //   multiBlink.enable();
+  // }
   
   //toggles LED every second
   if (basicBlink.call()) {
     digitalWrite (LED2, !digitalRead(LED2));
   }
   
-  //task as a function
-  multiBlinker();
+  // //task as a function
+  // multiBlinker();
 }
 
 //=======================================================================//

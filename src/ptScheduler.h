@@ -7,11 +7,11 @@
 // periodic tasks without using delay() or millis() routines.
 
 // Author : Vishnu Mohanan (@vishnumaiea)
-// Version : 1.1.2
+// Version : 2.0.0
 // License : MIT
 // Source : https://github.com/vishnumaiea/ptScheduler
 
-// Last modified : +05:30 11:59:11 AM 13-06-2021, Sunday
+// Last modified : +05:30 18:19:10 PM 14-06-2021, Monday
 
 //=======================================================================//
 //includes
@@ -36,6 +36,7 @@
 #define PT_SLEEP_SUSPEND     2    //self-suspend mode
 
 typedef uint64_t time_ms_t;  //time in milliseconds
+typedef uint64_t time_us_t;  //time in milliseconds
 
 //=======================================================================//
 //main class
@@ -62,6 +63,7 @@ class ptScheduler {
     uint32_t skipInterval = 0;  //number of intervals to skip
     uint32_t skipIteration = 0; //number of iterations to skip
     time_ms_t skipTime = 0; //time to skip before running a task
+    uint32_t prevTimeDelta = 0; //previous time difference
 
     bool taskEnabled = true;  //task is allowed to run or not
     bool taskStarted = false; //task has started an execution cycle
@@ -99,6 +101,7 @@ class ptScheduler {
     bool setSleepMode (uint8_t mode); //set what happens after an iteration is complete
     bool isInputError();
     void printStats();  //prints all the statuses and counter to debug port
+    void timeElapsed();
 };
 
 //=======================================================================//
