@@ -657,6 +657,8 @@ bool ptScheduler::setIteration (int32_t value) {
       return false;
       break;
   }
+  
+  return false;
 }
 
 //=======================================================================//
