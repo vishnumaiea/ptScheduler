@@ -7,11 +7,11 @@
 // periodic tasks without using delay() or millis() routines.
 
 // Author : Vishnu Mohanan (@vishnumaiea)
-// Version : 2.0.1
+// Version : 2.1.0
 // License : MIT
 // Source : https://github.com/vishnumaiea/ptScheduler
 
-// Last modified : +05:30 11:06:35 AM 29-03-2022, Tuesday
+// Last modified : +05:30 23:25:21 PM 29-03-2022, Tuesday
 
 //=======================================================================//
 
@@ -28,106 +28,78 @@
 
 //creates the basic type of task.
 //accepts a single interval in microseconds.
+//the list will be only one interval long.
+//adding additional intervals later will fail.
+//the default mode is ONESHOT.
 
 ptScheduler::ptScheduler (time_us_t interval_1) {
-  intervalSequence = new time_us_t(1);  //create a new list
-  // intervalSequence = (time_us_t*) malloc(sizeof(time_us_t));  //create a new list
-  intervalSequence[0] = interval_1;
-  intervalSequenceLength = 1;
-  // intervalSequenceIndex = 0;
+  sequenceList = new time_us_t(1);  //create a new interval list
+  sequenceList[0] = interval_1;
+  sequenceLength = 1;
+  // sequenceIndex = 0;
   // taskEnabled = true;
 
-  taskMode = PT_MODE_OI;  //onehot mode
-  // sleepMode = PT_SLEEP_DISABLE; //task will be disabled when an iteration completes
+  taskMode = PT_MODE_ONESHOT;
+  // sleepMode = PT_SLEEP_DISABLE;
 }
 
 //----------------------------------------------------------------------//
 //same as the previous one but you can also specify the mode.
+//fallback mode is ONESHOT, in case of input error.
+//default sleep mode is DISABLE.
 
 ptScheduler::ptScheduler (uint8_t mode, time_us_t interval_1) {
-  intervalSequence = new time_us_t(1);  //create a new list
-  intervalSequence[0] = interval_1;
-  intervalSequenceLength = 1;
-  intervalSequenceIndex = 0;
+  sequenceList = new time_us_t(1);  //create a new list
+  sequenceList[0] = interval_1;
+  sequenceLength = 1;
+  sequenceIndex = 0;
   taskEnabled = true;
   sleepMode = PT_SLEEP_DISABLE;
 
   switch (mode) {
-    case PT_MODE_OI:
-    case PT_MODE_OF:
-    case PT_MODE_SI:
-    case PT_MODE_SF:
+    case PT_MODE_ONESHOT:
+    case PT_MODE_SPANNING:
       taskMode = mode;
       break;
     
     default:
-      taskMode = PT_MODE_OI;
+      taskMode = PT_MODE_ONESHOT;
       inputError = true;
       break;
   }
 }
 
 //----------------------------------------------------------------------//
-//accepts two intervals. intervals can be same or different.
-//works with all mdoes.
-
-// ptScheduler::ptScheduler (uint8_t mode, time_us_t interval_1, time_us_t interval_2) {
-//   intervalSequence = new time_us_t(2);  //create a new sequence
-//   intervalSequence[0] = interval_1;
-//   intervalSequence[1] = interval_2;
-//   intervalSequenceLength = 2;
-//   intervalSequenceIndex = 0;
-//   taskEnabled = true;
-//   sleepMode = PT_SLEEP_DISABLE;
-
-//   switch (mode) {
-//     case PT_MODE_OI:
-//     case PT_MODE_OF:
-//     case PT_MODE_SI:
-//     case PT_MODE_SF:
-//       taskMode = mode;
-//       break;
-    
-//     default:
-//       taskMode = PT_MODE_OI;
-//       inputError = true;  //when the user has made a mistake
-//       break;
-//   }
-// }
-
-//----------------------------------------------------------------------//
 //this accepts a list of intervals. you have to create an array of intervals
-//in the globals scope and pass the pointer to this along with the number
-//of intervals in the array.
+//in the global scope and pass the pointer to this along with the number
+//of intervals in the array. the list of intervals is called an interval
+//sequence and the number of intervals as sequence length. 
 
-ptScheduler::ptScheduler (uint8_t mode, time_us_t* sequencePtr, uint8_t sequenceLength) {
-  if ((sequencePtr != nullptr) && (sequenceLength != 0)) {
-    intervalSequence = sequencePtr;
-    intervalSequenceLength = sequenceLength;
+ptScheduler::ptScheduler (uint8_t mode, time_us_t* sequencePtr, uint8_t sequenceLen) {
+  if ((sequencePtr != nullptr) && (sequenceLen != 0)) {
+    sequenceList = sequencePtr;
+    sequenceLength = sequenceLen;
     
-    intervalSequenceIndex = 0;
+    sequenceIndex = 0;
     taskEnabled = true;
     sleepMode = PT_SLEEP_DISABLE;
     
     switch (mode) {
-      case PT_MODE_OI:
-      case PT_MODE_OF:
-      case PT_MODE_SI:
-      case PT_MODE_SF:
+      case PT_MODE_ONESHOT:
+      case PT_MODE_SPANNING:
         taskMode = mode;
         break;
       
       default:
-        taskMode = PT_MODE_OI;
+        taskMode = PT_MODE_ONESHOT;
         inputError = true;  //when the user has made a mistake
         break;
     }
   }
   else {  //if the input parameters are invalid
-    ptScheduler(1000);
+    ptScheduler(PT_TIME_DEFAULT);
     inputError = true;
   }
-  
 }
 
 //=======================================================================//
@@ -140,29 +112,38 @@ ptScheduler::~ptScheduler() {
 //=======================================================================//
 //you wouldn't believe me if I said it took me a whole day to figure out
 //how to implement this logic.
+//returns the time elapsed from entry time, in microseconds.
+//this logic is designed to deal with overflow events.
 
-inline void ptScheduler::timeElapsed() {
-  uint32_t timeDelta = uint32_t(micros() - entryTime);
-  elapsedTime += uint32_t(timeDelta - prevTimeDelta); //this will always return the absolute difference
+// void ptScheduler::getTimeElapsed() {
+//   uint32_t timeDelta = uint32_t(GET_MICROS() - entryTime);
+//   elapsedTime += uint32_t(timeDelta - prevTimeDelta); //this will always return the absolute difference
+//   prevTimeDelta = timeDelta;
+// }
+
+void ptScheduler::getTimeElapsed() {
+  microsValue = GET_MICROS();
+  timeDelta = uint32_t(microsValue - entryTime);
+  uint32_t diff = uint32_t(timeDelta - prevTimeDelta);
+
+  elapsedTime += diff; 
   prevTimeDelta = timeDelta;
 }
 
 //=======================================================================//
 //allows you to change modes dynamically.
-//returns true if the mode was correct.
+//returns true if the mode is valid.
 
 bool ptScheduler::setTaskMode (uint8_t mode) {
   switch (mode) {
-    case PT_MODE_OI:
-    case PT_MODE_OF:
-    case PT_MODE_SI:
-    case PT_MODE_SF:
+    case PT_MODE_ONESHOT:
+    case PT_MODE_SPANNING:
       taskMode = mode;
       return true;
       break;
     
     default:
-      taskMode = PT_MODE_OI;
+      taskMode = PT_MODE_ONESHOT;
       inputError = true;  //when the user has made a mistake
       return false;
       break;
@@ -171,13 +152,16 @@ bool ptScheduler::setTaskMode (uint8_t mode) {
 }
 
 //=======================================================================//
-//sleep applies to iterated tasks. when an iteration (a set of intervals)
-//complete the execution, we have two options to prevent the task from running
-//further. we can either disable the task, which will reset all state
-//variables to default and all counters to reset. the interval counter,
-//iteration counter etc won't run in disabled mode. the other method
-//is to just suspend the task. a suspended task will return false until it
-//is resumed again. the intrval counter will increment in suspend mode.
+//sleep is the event when a task finishes a number of finite sequenceRepetition.
+//a task can end the sequenceRepetition in two ways, either SUSPEND or DISABLE.
+//DISBLE completely turns off the task and no counters or variables will
+//change during DISABLE. you can only restart a task by enabling it.
+//SUSPEND on the other hand temporarily suspends the task activity
+//by immediately returning false always, but keep some of the counters running.
+//suspened takss can be resumed based on how long they have been
+//suspended. this is not possible with disabled tasks.
+//the suspendedIntervalCounter is the counter that will be running
+//during suspension.
 
 bool ptScheduler::setSleepMode (uint8_t mode) {
   switch (mode) { //check if the input mode is valid
@@ -198,18 +182,16 @@ bool ptScheduler::setSleepMode (uint8_t mode) {
 //=======================================================================//
 //determines whether a task has to be executed.
 //enclose this in a conditional statement to run that block of code.
-//do not use other blocking delays.
+//do not use other blocking delays inside or outside those blocks.
 
 bool ptScheduler::call() {
   switch (taskMode) {
-    case PT_MODE_OI:
-    case PT_MODE_OF:
+    case PT_MODE_ONESHOT:
       return oneshot();
       
       break;
 
-    case PT_MODE_SI:
-    case PT_MODE_SF:
+    case PT_MODE_SPANNING:
       return spanning();
 
       break;
@@ -222,21 +204,25 @@ bool ptScheduler::call() {
 }
 
 //=======================================================================//
-//implements the spanning task logic.
+//implements the SPANNING task logic.
+//the return state of a spanning task will persist until the ongoing interval
+//is ended. if you set the state to true and wait for 2 seconds, then the sate
+//will remain true until 2 seconds are passed. this is unlike ONESHOT logic
+//which return true only moemetarily.
 
 bool ptScheduler::spanning() {
   if (taskEnabled) {
-    //if an execution cycle has not started, yet skip for the time set.
+    //if an execution cycle has not started yet, skip for the time set.
     if ((!taskStarted) && (skipIntervalSet || skipSequenceSet || skipTimeSet)) {
-      if (entryTime == 0) { //this is one way to find if an exe cycle not started
+      if (entryTime == 0) { //this is one way to find if an exe cycle has not started
         elapsedTime = 0;
-        entryTime = micros();
+        entryTime = GET_MICROS();
         return false;
       }
       else {
-        elapsedTime = micros() - entryTime;
+        elapsedTime = GET_MICROS() - entryTime;
 
-        if (elapsedTime < skipTime) { //skip time is set when skip time or skip interval are set
+        if (elapsedTime < skipTime) { //skipTime is set when skip time or skip interval is set
           return false;
         }
         else {
@@ -254,35 +240,36 @@ bool ptScheduler::spanning() {
       executionCounter++; //this increments before the interval counter
       elapsedTime = 0;  //reset so that we can start a new cycle
       prevTimeDelta = 0;
-      entryTime = micros();
+      entryTime = GET_MICROS();
       cycleStarted = true;
-      repetitionsEnded = false;
+      sequenceRepetitionEnded = false;
       taskStarted = true;
-      intervalSequenceIndex = 0;
+      sequenceIndex = 0;
       intervalCounter = 0;
       // printStats();
     }
     else {  //if an interval cycle has started
-      timeElapsed();  //get the elapsed time
+      getTimeElapsed();  //get the elapsed time since entry time
 
-      // elapsedTime = micros() - entryTime;
-
-      if (elapsedTime >= intervalSequence[intervalSequenceIndex]) {
-        if (intervalSequenceIndex < (intervalSequenceLength-1)) {
-          intervalSequenceIndex++;
+      if (elapsedTime >= sequenceList[sequenceIndex]) {
+        if (sequenceIndex < (sequenceLength-1)) {
+          sequenceIndex++;
         }
         else {
-          intervalSequenceIndex = 0;
+          sequenceIndex = 0;
         }
 
         intervalCounter++;
         exitTime = entryTime + elapsedTime;
         lastElapsedTime = elapsedTime;
-        entryTime = micros();
+        elapsedTime = 0;
+        entryTime = GET_MICROS(); //we are entering a new cycle
+        prevTimeDelta = 0;  //so we can reset these
+        timeDelta = 0;
 
         if (!taskSuspended) {
-          if (repetitions > 0) { //if this is a finite repetition task
-            if (executionCounter == repetitionsExtended) { //when the specified no. of repetitions have been reached
+          if (sequenceRepetition > 0) { //if this is a finite repetition task
+            if (executionCounter == sequenceRepetitionExtended) { //when the specified no. of sequenceRepetition have been reached
               if (sleepMode == PT_SLEEP_DISABLE) {
                 disable(); //interval counter will not run in this mode
               }
@@ -290,25 +277,22 @@ bool ptScheduler::spanning() {
                 //this is the self-suspend mode.
                 suspend();
               }
-              //when an iteration has completed
-              // printStats();
 
               //when a task suspends itself, it also resets the execution counter.
               //because of this, when you resume a suspended task the next time,
-              //the number of repetitions are executed once again.
-              executionCounter = 0; //so that we can start a new iteration
+              //the number of sequenceRepetition are executed once again.
+              executionCounter = 0;
               
               // intervalCounter = 0;
               taskRunState = false;
               taskRunning = false;
-              repetitionsEnded = true;
+              sequenceRepetitionEnded = true;
               suspendedIntervalCounter = 0;
-              // intervalSequenceIndex = 0;  //you have to manually reset this, if you want
+              // sequenceIndex = 0;  //you have to manually reset this, if you want
               return false;
             }
           }
 
-          //if not an iterated task
           taskRunState = (taskRunState) ? false : true; //toggle the state
 
           if (taskRunState) {
@@ -322,13 +306,18 @@ bool ptScheduler::spanning() {
         }
         else {  //if suspended
           // printStats();
-          suspendedIntervalCounter++; //time elapsed after iteration is complete
+          suspendedIntervalCounter++; //counts how long a task remains suspended
+
+          //without this, the states may be swapped after resuming a task.
+          taskRunState = (taskRunState) ? false : true; //toggle the state
+          
+          //if you return taskRunState instead, you can generate pulses on rising and falling edges
           return false;
         }
       }
     }
 
-    //if the task is not suspended, persist the state until the cycle ends.
+    //if the task is not suspended, persist the state until the interval ends.
     if (!taskSuspended) {
       return taskRunState;
     }
@@ -340,23 +329,24 @@ bool ptScheduler::spanning() {
   else { //if not activated
     return false;
   }
-} 
+}
 
 //=======================================================================//
 //implements the logic of oneshot tasks.
+//ONESHOT returns true momentarily during the rising edge of an interval.
 
 bool ptScheduler::oneshot() {
   if (taskEnabled) {
-    //if an execution cycle has not started, yet skip for the time set
+    //if an execution cycle has not started yet, skip for the time set.
     if ((!taskStarted)) {
       if (skipIntervalSet || skipSequenceSet || skipTimeSet) {
         if (entryTime == 0) { //this is one way to find if an exe cycle not started
           elapsedTime = 0;
-          entryTime = micros();
+          entryTime = GET_MICROS();
           return false;
         }
         else {
-          if ((micros() - entryTime) < skipTime) { //skip time is set when skip time or skip interval are set
+          if ((GET_MICROS() - entryTime) < skipTime) {
             return false;
           }
           else {
@@ -370,14 +360,15 @@ bool ptScheduler::oneshot() {
     if (!cycleStarted) { //if a time cycle has not started
       elapsedTime = 0;
       prevTimeDelta = 0;
-      entryTime = micros();
+      timeDelta = 0;
+      entryTime = GET_MICROS();
       cycleStarted = true;
-      // intervalCounter++;  //interval counter increments even if the task is suspended
+      // intervalCounter++;
 
-      //this is the return point that gives you green signal each time 
+      //this is the return point that gives you green signal each time.
       if (!taskSuspended) {
-        if (repetitions > 0) { //if this is an iterated task
-          if (repetetionsCounter == repetitions) { //when the specified no. of repetitions have been reached
+        if (sequenceRepetition > 0) { //if this is an iterated task
+          if (sequenceRepetitionCounter == sequenceRepetition) { //when the specified no. of sequenceRepetition have been reached
             if (sleepMode == PT_SLEEP_DISABLE) {
               disable(); //interval counter will not run in this mode
             }
@@ -388,7 +379,7 @@ bool ptScheduler::oneshot() {
             }
             //when a task suspends itself, it also resets the execution counter.
             //because of this, when you resume a suspended task the next time,
-            //the number of repetitions are executed once again. a side effect of this
+            //the number of sequenceRepetition are executed once again. a side effect of this
             //is that, when you suspend a task before an iteration is completed, this
             //will cause the task to start a new iteration when you resume it next time.
             //you may want the actual iteration to resume. if that's the requirement,
@@ -398,10 +389,10 @@ bool ptScheduler::oneshot() {
 
             //a sequence is not considered ended until all of the intervals have been spanned.
             //oneshot tasks return true at the start of an interval. therefore, execution counter
-            //being equal to repetitions does not mean the last interval is elapsed.
+            //being equal to sequenceRepetition does not mean the last interval is elapsed.
             //therefore, the last execution cycle of a oneshot sequence would not return this variable
-            //as true. it will be only true after the last interval has elapsed.
-            repetitionsEnded = true;
+            //as true. it will be only true after the last interval in the sequence has elapsed.
+            sequenceRepetitionEnded = true;
 
             suspendedIntervalCounter = 0;
             return false;
@@ -416,21 +407,19 @@ bool ptScheduler::oneshot() {
       }
     }
 
-    //if cycle has started.
     //check if a time cycle has elapsed.
     else {
-      // elapsedTime = millis() - entryTime; //this already takes care of millis() overflow
-      timeElapsed();
+      getTimeElapsed();
 
-      if (elapsedTime >= intervalSequence[intervalSequenceIndex]) {
-        if (intervalSequenceIndex < (intervalSequenceLength-1)) {
-          intervalSequenceIndex++;
+      if (elapsedTime >= sequenceList[sequenceIndex]) {
+        if (sequenceIndex < (sequenceLength-1)) {
+          sequenceIndex++;
         }
         else {
-          intervalSequenceIndex = 0;
-          //repetitions counter should only increment when the task in not in suspended state.
+          sequenceIndex = 0;
+          //sequenceRepetition counter should only increment when the task in not in suspended state.
           if (!taskSuspended) {
-            repetetionsCounter++;
+            sequenceRepetitionCounter++;
           }
         }
 
@@ -457,13 +446,13 @@ bool ptScheduler::oneshot() {
 
 void ptScheduler::printStats() {
   debugSerial.print(F("Interval Sequence Length : "));
-  debugSerial.println(intervalSequenceLength);
+  debugSerial.println(sequenceLength);
   debugSerial.print(F("Intervals (us) : "));
 
-  for (int i=0; i < intervalSequenceLength; i++) {
-    debugSerial.print((int32_t) intervalSequence[i]);
+  for (int i=0; i < sequenceLength; i++) {
+    debugSerial.print((int32_t) sequenceList[i]);
 
-    if (i != (intervalSequenceLength-1)) {
+    if (i != (sequenceLength-1)) {
       debugSerial.print(F(", "));
     }
     else {
@@ -481,8 +470,8 @@ void ptScheduler::printStats() {
   debugSerial.println(skipSequence);
   debugSerial.print(F("Skip Time : "));
   debugSerial.println((int32_t) skipTime);
-  debugSerial.print(F("Repetitions : "));
-  debugSerial.println(repetitions);
+  debugSerial.print(F("sequenceRepetition : "));
+  debugSerial.println(sequenceRepetition);
   debugSerial.print(F("Entry Time : "));
   debugSerial.println((int32_t) entryTime);
   debugSerial.print(F("Elapsed Time : "));
@@ -497,21 +486,21 @@ void ptScheduler::printStats() {
   debugSerial.println((uint32_t)suspendedIntervalCounter);
   debugSerial.print(F("Execution Counter : "));
   debugSerial.println((uint32_t)executionCounter);
-  debugSerial.print(F("Repetitions Counter : "));
-  debugSerial.println((uint32_t)repetetionsCounter);
-  debugSerial.print(F("Enabled ? : "));
+  debugSerial.print(F("sequenceRepetition Counter : "));
+  debugSerial.println((uint32_t)sequenceRepetitionCounter);
+  debugSerial.print(F("Task Enabled ? : "));
   debugSerial.println(taskEnabled);
-  debugSerial.print(F("Suspended ? : "));
+  debugSerial.print(F("Task Suspended ? : "));
   debugSerial.println(taskSuspended);
   debugSerial.print(F("Task Started ? : "));
   debugSerial.println(taskStarted);
   debugSerial.print(F("Cycle Started ? : "));
   debugSerial.println(cycleStarted);
-  debugSerial.print(F("Running ? : "));
+  debugSerial.print(F("Task Running ? : "));
   debugSerial.println(taskRunning);
-  debugSerial.print(F("Ended ? : "));
-  debugSerial.println(repetitionsEnded);
-  debugSerial.print(F("Run State : "));
+  debugSerial.print(F("Task Ended ? : "));
+  debugSerial.println(sequenceRepetitionEnded);
+  debugSerial.print(F("Task Run State : "));
   debugSerial.println(taskRunState);
   debugSerial.print(F("Input Error : "));
   debugSerial.println(inputError);
@@ -527,7 +516,7 @@ void ptScheduler::enable() {
 }
 
 //=======================================================================//
-//suspends a task. interval counter will continue to increment in this mode.
+//suspends a task. suspendedIntervalCounter will continue to increment in this mode.
 
 void ptScheduler::suspend() {
   taskSuspended = true;
@@ -545,27 +534,29 @@ void ptScheduler::resume() {
 //=======================================================================//
 //disables a task from running.
 //this will reset all values to their idle state.
-//all the user specified values will be preserved.
-//this include, mode, skip interval, time, iteration, default interval etc.
-//you have to call either enable() or reset() functions to start execution again.
+//all user specified values will be preserved.
+//this include, mode, skip interval, time, sequenceRepetition, default interval etc.
+//you have to call either enable() or reset() functions to start execution.
 
 void ptScheduler::disable() {
   taskEnabled = false;
   taskStarted = false;
   cycleStarted = false;
   taskSuspended = false;
-  repetitionsEnded = true;
+  sequenceRepetitionEnded = true;
   taskRunning = false;
   taskRunState = false;
 
   entryTime = 0;
   exitTime = 0;
   elapsedTime = 0;
+  timeDelta = 0;
+  prevTimeDelta = 0;
   intervalCounter = 0;
   suspendedIntervalCounter = 0;
   executionCounter = 0;
-  repetetionsCounter = 0;
-  intervalSequenceIndex = 0;
+  sequenceRepetitionCounter = 0;
+  sequenceIndex = 0;
 }
 
 //=======================================================================//
@@ -577,75 +568,55 @@ void ptScheduler::reset() {
 }
 
 //=======================================================================//
-//set the iteration number for a task. the repetitions are compared to the
-//execution counter each time. when the set number of executions has
-//completed, the task will go to sleep mode. the sleep mode is user
-//definable.
+//sets how many times the interval sequence has to be executed.
+//execution of a sequence each time is called a repetition.
+//this only applies to finite tasks.
 
-bool ptScheduler::setRepetition (int32_t value) {
+bool ptScheduler::setSequenceRepetition (int32_t value) {
   switch (taskMode) {
-    case PT_MODE_OI:
-    case PT_MODE_OF:
-      repetitions = value;
-      repetitionsExtended = value;
+    case PT_MODE_ONESHOT:
+      sequenceRepetition = value;
+      sequenceRepetitionExtended = value;
       return true;
       break;
     
-    case PT_MODE_SI:
-    case PT_MODE_SF:
-      //determining how many iteration has executed for a spanning task with odd no. of intervals is not
+    case PT_MODE_SPANNING:
+      //determining how many sequenceRepetition have executed for a spanning task with odd no. of intervals is not
       //straight forward as oneshot tasks. odd number of intervals produce inverted output after every
       //interval set. for example if the intervals are 1000, 2000 and 3000, the first 1000 ms will be HIGH,
       //next LOW for 2000 ms, then again high for 3000 ms. after that, the pattern is inverted. since 3000 ms
       //was HIGH, next 1000 ms will be LOW and so on. so counting just the HIGH states (execution counter) won't work.
-      //we need to calculate how many intervals we have to check to determine if the specified iteration has
-      //completed. but the user will specify the number of repetitions only.
-      repetitions = value;
-      if ((intervalSequenceLength % 2) == 1) {
-        repetitionsExtended = uint32_t(((intervalSequenceLength + 1) / 2) * repetitions);
-        repetitionsExtended--; //we need one less, otherwise there will be one extra active state
+      //we need to calculate how many intervals we have to check to determine if the specified repetition has
+      //completed. but the user will specify the number of sequenceRepetition only.
+      sequenceRepetition = value;
+      
+      if ((sequenceLength % 2) == 1) {
+        sequenceRepetitionExtended = uint32_t(((sequenceLength + 1) / 2) * sequenceRepetition);
+        sequenceRepetitionExtended--; //we need one less, otherwise there will be one extra active state
       }
       else {
-        repetitionsExtended = uint32_t((intervalSequenceLength * repetitions) / 2);
+        sequenceRepetitionExtended = uint32_t((sequenceLength * sequenceRepetition) / 2);
       }
       
       break;
     
     default:
-      repetitions = 0;
-      repetitionsExtended = 0;
+      sequenceRepetition = 0;
+      sequenceRepetitionExtended = 0;
       inputError = true;
       return false;
       break;
   }
+  return false;
 }
 
 //=======================================================================//
-//set the interval at which you want the task to be executed.
-//time is in milliseconds.
-//a positive value will execute the task at 0th time and then every time
-//the set interval has passed. a minus value will postpone the task until
-//the set interval has passed for the first time. after, the task is
-//executed at every intervals.
-//input is time in milliseconds.
+//set the first interval value of an interval sequence.
+//input is time in microseconds.
 
 bool ptScheduler::setInterval (time_us_t value) {
-  if (intervalSequenceLength > 0) {
-    intervalSequence[0] = value;
-    return true;
-  }
-  else {
-    inputError = true;
-    return false;
-  }
-}
-
-//----------------------------------------------------------------------//
-
-bool ptScheduler::setInterval (time_us_t value_1, time_us_t value_2) {
-  if (intervalSequenceLength > 1) {
-    intervalSequence[0] = value_1;
-    intervalSequence[1] = value_2;
+  if (sequenceLength > 0) {
+    sequenceList[0] = value;
     return true;
   }
   else {
@@ -656,26 +627,32 @@ bool ptScheduler::setInterval (time_us_t value_1, time_us_t value_2) {
 
 //=======================================================================//
 //skips the specified many intervals at the beginning.
-//this is different from skipping repetitions.
+//this is different from skipping a whole sequence.
 //if you have unequal intervals set, each of them are picked in order,
-//until it is equal to the intervals to set.
-//skip time is calculated from this selected many intervals by adding them.
+//until it is equal to the intervals to skip.
+//skip time is calculated from this selected many intervals by summing them.
 //if you set both skip interval and skip iteration, the last one determines
 //skip time. input is a positive integer.
 
 bool ptScheduler::setSkipInterval (uint32_t value) {
-  if (intervalSequenceLength > 0) {
+  if (sequenceLength > 0) {
     skipInterval = value;
-    skipIntervalSet = true;
 
+    if (value == 0) {
+      skipIntervalSet = false;
+      skipTime = 0;
+      return true;
+    }
+
+    skipIntervalSet = true;
     skipTime = 0;
     uint32_t index = 0;
 
     for (uint32_t i=0; i < value; i++) {
-      if (index == intervalSequenceLength) {
+      if (index == sequenceLength) {
         index = 0;
       }
-      skipTime += intervalSequence[index];
+      skipTime += sequenceList[index];
       index++;
     }
     return true;
@@ -684,26 +661,25 @@ bool ptScheduler::setSkipInterval (uint32_t value) {
 }
 
 //=======================================================================//
-//skips the specified many repetitions at the beginning.
-//an iteration is the set of all the specified intervals.
-//eg. if you have specified 3 unequal intervals, they together form an iteration.
-//for periodic oneshot (mode 1) tasks, and tasks with equal intervals
-//this is same as setting skip intervals.
-//when you set a skip iteration, the skip time is automatically calculated.
-//if you have unequal intervals,each set is summed and multiplied by the
-//itertations to skip, to find the time.
-//input is a positive integer.
+//skips the specified many sequences at the beginning.
+//a sequence is the set of all the specified intervals.
 
 bool ptScheduler::setSkipSequence (uint32_t value) {
-  if (intervalSequenceLength > 0) {
+  if (sequenceLength > 0) {
     skipSequence = value;
-    skipSequenceSet = true;
 
+    if (value == 0) {
+      skipSequenceSet = false;
+      skipTime = 0;
+      return true;
+    }
+    
+    skipSequenceSet = true;
     skipTime = 0;
 
     for (uint8_t i=0; i < value; i++) {
-      for (uint8_t j=0; j < intervalSequenceLength; j++) {
-        skipTime += intervalSequence[j];
+      for (uint8_t j=0; j < sequenceLength; j++) {
+        skipTime += sequenceList[j];
       }
     }
     return true;
@@ -712,15 +688,16 @@ bool ptScheduler::setSkipSequence (uint32_t value) {
 }
 
 //=======================================================================//
-//skips the specified time before each execution cycle.
-//for itertated tasks, this is before each iteration.
-//for indefinite tasks, this happens at the beginning once, unless you
-//disable or reset it.
-//input is time on milliseconds.
+//skip the specified time before executing the task.
 
 bool ptScheduler::setSkipTime (time_us_t value) {
-  if (intervalSequenceLength > 0) {
+  if (sequenceLength > 0) {
     skipTime = value;
+    
+    if (value == 0) {
+      skipTimeSet = false;
+    }
+
     skipTimeSet = true;
     return true;
   }

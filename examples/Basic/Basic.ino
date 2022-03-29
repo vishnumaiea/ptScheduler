@@ -7,11 +7,11 @@
 // periodic tasks without using delay() or millis() routines.
 
 // Author : Vishnu Mohanan (@vishnumaiea)
-// Version : 2.0.0
+// Version : 2.1.0
 // License : MIT
 // Source : https://github.com/vishnumaiea/ptScheduler
 
-// Last modified : +05:30 18:18:44 PM 14-06-2021, Monday
+// Last modified : +05:30 23:27:23 PM 29-03-2022, Tuesday
 
 //=======================================================================//
 //description
@@ -27,7 +27,7 @@
 //=======================================================================//
 //includes
 
-#include "ptScheduler.h"
+#include <ptScheduler.h>
 
 //=======================================================================//
 //defines
@@ -39,47 +39,48 @@
 //globals
 
 //create tasks
-ptScheduler sayHello = ptScheduler(1000);
-ptScheduler sayName = ptScheduler(3000);
-ptScheduler basicBlink = ptScheduler(500000);
-ptScheduler multiBlink = ptScheduler(PT_MODE_EIO, 100); //Equal, Iterated, Oneshot
+ptScheduler sayHello = ptScheduler(PT_FREQ_1HZ);
+ptScheduler sayName = ptScheduler(PT_FREQ_5HZ);
+ptScheduler basicBlink = ptScheduler(PT_TIME_1S);
+ptScheduler multiBlink = ptScheduler(PT_MODE_ONESHOT, PT_TIME_100MS);
 
 //=======================================================================//
 //setup function runs once
 
 void setup() {
-  Serial.begin(115200);
+  Serial.begin(9600);
   pinMode(LED1, OUTPUT);
   pinMode(LED2, OUTPUT);
 
   multiBlink.setSleepMode(PT_SLEEP_SUSPEND);  //suspend mode so that we can resume the task periodically
-  multiBlink.setIteration(6); //for three blinks, we need 6 iterations (3 OFF states, and 3 ON states)
+  multiBlink.setSequenceRepetition(6); //for three blinks, we need 6 iterations (3 OFF states, and 3 ON states)
 
   Serial.print("\n-- ptScheduler --\n\n");
+  digitalWrite(LED1, HIGH);
 }
 
 //=======================================================================//
 //infinite loop
 
 void loop() {
-  // //executed every second
-  // if (sayHello.call()) {
-  //   Serial.println("Hello World");
-  // }
+  //executed every second
+  if (sayHello.call()) {
+    Serial.println("Hello World");
+  }
   
-  // //skips first time and executed every 3 seconds
-  // if (sayName.call()) {
-  //   Serial.println("I am ptScheduler");
-  //   multiBlink.enable();
-  // }
+  //skips first time and executed every 3 seconds
+  if (sayName.call()) {
+    Serial.println("I am ptScheduler");
+    multiBlink.enable();
+  }
   
   //toggles LED every second
   if (basicBlink.call()) {
-    digitalWrite (LED2, !digitalRead(LED2));
+    digitalWrite (LED1, !digitalRead(LED1));
   }
   
-  // //task as a function
-  // multiBlinker();
+  //task as a function
+  multiBlinker();
 }
 
 //=======================================================================//
@@ -91,8 +92,8 @@ void multiBlinker() {
   }
   //because the sleep mode is SUSPEND, the sleepIntervalCounter still increments.
   //but if the mode was DISABLE, it wouldn't increment.
-  else if (multiBlink.sleepIntervalCounter >= 20) { //100 ms * 20 = 2000 ms
-    multiBlink.resume();  //resume the suspended task so that LED will blink again
+  else if (multiBlink.suspendedIntervalCounter >= 20) { //100 ms * 20 = 2000 ms
+    multiBlink.reset();  //reset the suspended task so that LED will blink again
   }
 }
 

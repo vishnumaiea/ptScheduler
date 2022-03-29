@@ -1,5 +1,13 @@
 
 
+#
+
+**+05:30 11:07:41 AM 29-03-2022, Tuesday**
+
+  I have renamed a few of the variables to better match their job.
+
+  There is also going to be changes in the type of tasks. We will only have ONESHOT or SPANNING tasks. Everything else about a task can be customized.
+
 
 #
 

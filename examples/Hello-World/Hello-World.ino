@@ -7,11 +7,11 @@
 // periodic tasks without using delay() or millis() routines.
 
 // Author : Vishnu Mohanan (@vishnumaiea)
-// Version : 2.0.0
+// Version : 2.1.0
 // License : MIT
 // Source : https://github.com/vishnumaiea/ptScheduler
 
-// Last modified : +05:30 17:30:18 PM 27-09-2021, Monday
+// Last modified : +05:30 20:31:15 PM 29-03-2022, Tuesday
 
 //=======================================================================//
 //description
@@ -27,21 +27,21 @@
 //globals
 
 //create tasks
-ptScheduler sayHello(1000000); //Equal, Periodic, Oneshot
+ptScheduler sayHello(PT_FREQ_1HZ);
 
 //=======================================================================//
 //setup function runs once
 
 void setup() {
-  Serial.begin(115200);
+  Serial.begin(9600);
 }
 
 //=======================================================================//
 //infinite loop
 
 void loop() {
-  if (sayHello.call()) {  //executed every second
-    Serial.println("Hello World");
+  if (sayHello.call()) {
+    Serial.println("Hello World");  //prints every second
   }
 
   //add other tasks and non-blocking code here
