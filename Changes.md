@@ -1,5 +1,28 @@
 
 
+
+#
+
+**+05:30 05:32:14 PM 27-09-2021, Monday**
+
+  taskMode has been renamed to executionMode because it makes more sense what the parameter controls.
+
+
+#
+
+**+05:30 05:04:34 PM 31-08-2021, Tuesday**
+
+  I am going to rename Periodic tasks as "Infinite" and Iterated tasks as "Finite". Because both Periodic and Iterated are confusing and unintuitive. With these renaming, it will now be more clear. They can be described as "Finite Repetition Mode" and "Infinite Repetition Mode".
+
+  Terms Oneshot and Spanning will be kept, since they are already meaningful.
+
+  Now there can only be two type of tasks; Oneshot and Spanning with two modes; Finite and Infinite.
+
+  Timing modes = Oneshot and Spanning
+  Repetition modes = Finite and Infinite
+
+  Each task can be given with an interval sequence. This is a set of intervals that is always greater than 0.
+
 #
 
 **+05:30 06:19:25 PM 14-06-2021, Monday**

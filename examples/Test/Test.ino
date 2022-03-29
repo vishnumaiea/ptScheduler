@@ -11,7 +11,7 @@
 // License : MIT
 // Source : https://github.com/vishnumaiea/ptScheduler
 
-// Last modified : +05:30 18:18:52 PM 14-06-2021, Monday
+// Last modified : +05:30 20:34:23 PM 27-03-2022, Sunday
 
 //=======================================================================//
 //description
@@ -29,168 +29,224 @@
 #define LED1 LED_BUILTIN
 #define LED2 12
 
+#define debugSerial Serial
+
 //=======================================================================//
 //globals
 
-time_ms_t intervalArray[] = {1000, 1000, 2000, 2500, 3000}; 
+time_us_t intervalArray[] = {1000000, 2000000, 3000000, 2500000, 4000000}; 
+time_us_t intervalArray_2[] = {1000000, 1000000}; 
 
 //create tasks
-ptScheduler plot = ptScheduler(50); //serial plotter task
+ptScheduler plot = ptScheduler(50000); //serial plotter task
 
-ptScheduler epoTask = ptScheduler(1000);  //equal, periodic, oneshot
-ptScheduler eioTask = ptScheduler(PT_MODE_EIO, 1000);  //equal, iterated, oneshot
-ptScheduler epsTask = ptScheduler(PT_MODE_EPS, 1000);  //equal, periodic, spanning
-ptScheduler eisTask = ptScheduler(PT_MODE_EIS, 1000); //equal, iterated, spanning
-ptScheduler upsTask = ptScheduler(PT_MODE_UPS, 1000, 2000);  //unequal, periodic, spanning
-ptScheduler uisTask = ptScheduler(PT_MODE_UIS, intervalArray, 2);  //unequal, iterated, spanning
+// ptScheduler oiTask = ptScheduler(PT_MODE_OI, 1000000);
+ptScheduler oiTask = ptScheduler(PT_MODE_OI, intervalArray, 3); //oneshot, infinite
+ptScheduler siTask = ptScheduler(PT_MODE_SI, intervalArray_2, 2);  //spanning, infinite
+ptScheduler sfTask = ptScheduler(1000); //spanning, finite
 
 uint8_t ledOn = false;  //a var to toggle the LED state
 
 //=======================================================================//
 
 void setup() {
-  Serial.begin(9600);
+  debugSerial.begin(9600);
+  while(!debugSerial);
+  
   pinMode(LED1, OUTPUT);
   pinMode(LED2, OUTPUT);
+  
+  // oiTask.setSkipTime(3000000);
 
-  epoTask.setSkipInterval(4);
-  epoTask.setSkipTime(1000);
-  epoTask.setSkipIteration(5);
+  //setting repetitions to 0 means infinite repetitions.
+  // oiTask.setRepetition(0);
 
-  eioTask.setIteration(1);
-  eioTask.setSleepMode(PT_SLEEP_SUSPEND);
-  eioTask.setSkipIteration(3);
-  // eioTask.setSkipTime(1000);
-  eioTask.suspend();
+  //setting a repetition value to an infinite task will convert it to a finite task.
+  oiTask.setRepetition(0);
+  siTask.setRepetition(0);
 
-  eisTask.setIteration(5);
-  eisTask.setSleepMode(PT_SLEEP_SUSPEND);
+  //when setting a skip paramter after one has already been set,
+  //only the last parameter will take effect.
+  oiTask.setSkipInterval(0);
+  siTask.setSkipInterval(0);
 
-  uisTask.setIteration(3);
-  uisTask.setSleepMode(PT_SLEEP_SUSPEND);
+  //start disabled
+  oiTask.disable();
+  siTask.disable();
 }
 
 //=======================================================================//
 
 void loop() {
-  if (Serial.available() > 0) {
-    String inputString = Serial.readString();
+  // oiFunction();
+  siFunction();
+}
+
+//=======================================================================//
+//oneshot infinte task
+
+void oiFunction() {
+  //a set of commands to control the task
+  if (debugSerial.available()) {
+    String inputString = debugSerial.readString();
+    
     if (inputString == "1") {
-      // eioTask.taskStarted = false;
-      // eioTask.enable();
-      // eioTask.resume();
-      eioTask.reset();
+      oiTask.reset();
+    }
+    if (inputString == "2") {
+      oiTask.suspend();
+    }
+    if (inputString == "3") {
+      oiTask.resume();
+    }
+    if (inputString == "4") {
+      oiTask.disable();
     }
   }
-  eioFunction();
-  // epoFunction();
-}
-
-//=======================================================================//
-//unequal interval, iterated and spanning task
-
-void uisFunction() {
+  
   if (plot.call()) {
-    if (uisTask.call()) {
-      Serial.println("3");
+    if (oiTask.call()) {
+      debugSerial.println("3");
+      // oiTask.printStats();
     }
     else {
-      Serial.println("0");
+      debugSerial.println("0");
+      // if (oiTask.repetitionsEnded) {
+      //   // oiTask.printStats();
+      //   oiTask.repetitionsEnded = false;
+      // }
     }
   }
 }
 
 //=======================================================================//
-//unequal interval, periodic and spanning task
+//spaning infinite task
 
-void upsFunction() {
+void siFunction() {
+  //a set of commands to control the task
+  if (debugSerial.available()) {
+    String inputString = debugSerial.readString();
+    
+    if (inputString == "1") {
+      siTask.reset();
+    }
+    if (inputString == "2") {
+      siTask.suspend();
+    }
+    if (inputString == "3") {
+      siTask.resume();
+    }
+    if (inputString == "4") {
+      siTask.disable();
+    }
+  }
+  
   if (plot.call()) {
-    if (upsTask.call()) {
-      Serial.println("3");
+    if (siTask.call()) {
+      debugSerial.println("3");
+      // siTask.printStats();
     }
     else {
-      Serial.println("0");
+      debugSerial.println("0");
+      // if (siTask.repetitionsEnded) {
+      //   // siTask.printStats();
+      //   siTask.repetitionsEnded = false;
+      // }
     }
   }
 }
 
-//=======================================================================//
-//equal interval, iterated and spanning task
+// //=======================================================================//
+// //unequal interval, periodic and spanning task
 
-void eisFunction() {
-  if (plot.call()) {
-    if (eisTask.call()) {
-      Serial.println("3");
-    }
-    else {
-      Serial.println("0");
-      if (eisTask.sleepIntervalCounter == 10) {
-        eisTask.resume();
-      }
-    }
-  }
-}
+// void upsFunction() {
+//   if (plot.call()) {
+//     if (upsTask.call()) {
+//       Serial.println("3");
+//     }
+//     else {
+//       Serial.println("0");
+//     }
+//   }
+// }
 
-//=======================================================================//
-//equal interval, periodic and spanning task
+// //=======================================================================//
+// //equal interval, iterated and spanning task
 
-void epsFunction() {
-  if (plot.call()) {
-    if (epsTask.call()) {
-      Serial.println("3");
-    }
-    else {
-      Serial.println("0");
-      if (epsTask.intervalCounter == 10) {
-        epsTask.suspend();
-      }
-      else if (epsTask.intervalCounter > 15) {
-        epsTask.resume();
-      }
-    }
-  }
-}
+// void eisFunction() {
+//   if (plot.call()) {
+//     if (eisTask.call()) {
+//       Serial.println("3");
+//     }
+//     else {
+//       Serial.println("0");
+//       if (eisTask.sleepIntervalCounter == 10) {
+//         eisTask.resume();
+//       }
+//     }
+//   }
+// }
 
-//=======================================================================//
-//equal interval, iterated and oneshot task
+// //=======================================================================//
+// //equal interval, periodic and spanning task
 
-void eioFunction() {
-  if (eioTask.call()) {
-    Serial.println("3");
-  }
-  else if (plot.call()) {
-    Serial.println("0");
-    // if (eioTask.intervalCounter == 5) {
-    //   eioTask.resume();
-    // }
-    // if (eioTask.intervalCounter == 10) {
-    //   eioTask.resume();
-    // }
-    // if (eioTask.intervalCounter == 12) {
-    //   eioTask.resume();
-    // }
-  }
-}
+// void epsFunction() {
+//   if (plot.call()) {
+//     if (epsTask.call()) {
+//       Serial.println("3");
+//     }
+//     else {
+//       Serial.println("0");
+//       if (epsTask.intervalCounter == 10) {
+//         epsTask.suspend();
+//       }
+//       else if (epsTask.intervalCounter > 15) {
+//         epsTask.resume();
+//       }
+//     }
+//   }
+// }
 
-//=======================================================================//
-//equal interval, periodic and oneshot task
+// //=======================================================================//
+// //equal interval, iterated and oneshot task
 
-void epoFunction() {
-  if (epoTask.call()) {
-    Serial.println("3");
+// void eioFunction() {
+//   if (eioTask.call()) {
+//     Serial.println("3");
+//   }
+//   else if (plot.call()) {
+//     Serial.println("0");
+//     // if (eioTask.intervalCounter == 5) {
+//     //   eioTask.resume();
+//     // }
+//     // if (eioTask.intervalCounter == 10) {
+//     //   eioTask.resume();
+//     // }
+//     // if (eioTask.intervalCounter == 12) {
+//     //   eioTask.resume();
+//     // }
+//   }
+// }
 
-    // if ((epoTask.intervalCounter >= 5) && (epoTask.intervalCounter <= 10)) {
-    //   epoTask.suspend();
-    // }
-  }
-  else if (plot.call()) {
-    Serial.println("0");
+// //=======================================================================//
+// //equal interval, periodic and oneshot task
 
-    // if (epoTask.intervalCounter > 10) {
-    //   epoTask.resume();
-    // }
-  }
-}
+// void epoFunction() {
+//   if (epoTask.call()) {
+//     Serial.println("3");
 
-//=======================================================================//
+//     // if ((epoTask.intervalCounter >= 5) && (epoTask.intervalCounter <= 10)) {
+//     //   epoTask.suspend();
+//     // }
+//   }
+//   else if (plot.call()) {
+//     Serial.println("0");
+
+//     // if (epoTask.intervalCounter > 10) {
+//     //   epoTask.resume();
+//     // }
+//   }
+// }
+
+// //=======================================================================//
 

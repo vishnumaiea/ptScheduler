@@ -11,7 +11,7 @@
 // License : MIT
 // Source : https://github.com/vishnumaiea/ptScheduler
 
-// Last modified : +05:30 18:19:10 PM 14-06-2021, Monday
+// Last modified : +05:30 12:46:30 PM 02-02-2022, Wednesday
 
 //=======================================================================//
 //includes
@@ -23,20 +23,23 @@
 
 #define debugSerial   Serial
 
-#define PT_MODE_EPO     1   //Equal, Periodic, Oneshot
-#define PT_MODE_EIO     2   //Equal, Iterated, Oneshot
-#define PT_MODE_UPO     3   //Unequal, Periodic, Oneshot
-#define PT_MODE_UIO     4   //Unequal, Iterated, Oneshot
-#define PT_MODE_EPS     5   //Equal, Periodic, Spanning
-#define PT_MODE_EIS     6   //Equal, Iterated, Spanning
-#define PT_MODE_UPS     7   //Unequal, Periodic, Spanning
-#define PT_MODE_UIS     8   //Unequal, Iterated, Spanning
+// #define PT_TMODE_O  1   //Timing mode = Oneshot (default)
+// #define PT_TMODE_S  2   //Timing mode = Spanning
+// #define PT_RMODE_I  3   //Repetition mode = Infinite (default)
+// #define PT_RMODE_F  4   //Repetition mode = Finite
+
+#define PT_MODE_OI  1
+#define PT_MODE_OF  2
+#define PT_MODE_SI  3
+#define PT_MODE_SF  4
 
 #define PT_SLEEP_DISABLE     1    //self-disable mode
 #define PT_SLEEP_SUSPEND     2    //self-suspend mode
 
+#define MS_MULTIPLIER  1000   //multiplier to convert ms to us
+
 typedef uint64_t time_ms_t;  //time in milliseconds
-typedef uint64_t time_us_t;  //time in milliseconds
+typedef uint64_t time_us_t;  //time in microseconds
 
 //=======================================================================//
 //main class
@@ -45,43 +48,44 @@ class ptScheduler {
   private :
     
   public :
-    time_ms_t entryTime = 0;  //the entry point of a task, returned by millis()
-    time_ms_t exitTime = 0; //the exit point of a tast, returned by millis()
-    time_ms_t elapsedTime = 0;  //elapsed time since the last task execution
+    time_us_t entryTime = 0;  //the entry point of a task, returned by micros()
+    time_us_t exitTime = 0; //the exit point of a tast, returned by micros()
+    time_us_t elapsedTime = 0;  //elapsed time since the last task execution
+    time_us_t lastElapsedTime = 0;  //this is the last calculated elapsed time that is not reset
     uint64_t intervalCounter = 0; //how many intervals have been passed
-    uint64_t sleepIntervalCounter = 0; //how many intervals have been passed after disabling/suspending the task
-    uint64_t executionCounter = 0; //how many times the task has been executed
-    uint64_t iterationCounter = 0; //how many times the iteration set has been executed
+    uint64_t suspendedIntervalCounter = 0; //how many intervals have been passed after disabling/suspending the task
+    uint64_t executionCounter = 0; //how many times the task has returned true
+    uint64_t repetetionsCounter = 0; //how many times the sequence has been repeated
     
-    uint32_t iterations = 0;  //how many times a task has to be executed, for each activation
-    uint32_t iterationsExtended = 0;  //how many times a task has to be executed, for each activation
-    uint8_t taskMode = PT_MODE_EPO;  //the execution mode of a task
+    uint32_t repetitions = 0;  //how many times an interval sequence has to be executed
+    uint32_t repetitionsExtended = 0;  //repetitions * interval sequence length
+    uint8_t taskMode = PT_MODE_OI;  //the execution mode of the task
     uint8_t sleepMode = PT_SLEEP_DISABLE; //default is disable
-    uint8_t intervalCount;  //how many intervals have been passed
-    time_ms_t* intervalList;  //a pointer to array of intervals
-    uint8_t intervalIndex = 0;  //the position in the interval list
-    uint32_t skipInterval = 0;  //number of intervals to skip
-    uint32_t skipIteration = 0; //number of iterations to skip
-    time_ms_t skipTime = 0; //time to skip before running a task
+    uint8_t intervalSequenceLength;  //how many intervals in a sequence
+    time_us_t* intervalSequence;  //a pointer to the interval sequence
+    uint8_t intervalSequenceIndex = 0;  //index position of interval sequence
+    uint32_t skipInterval = 0;  //number of individual intervals to skip
+    uint32_t skipSequence = 0; //number of sequences (set of intervals) to skip
+    time_us_t skipTime = 0; //time to wait before running a task
     uint32_t prevTimeDelta = 0; //previous time difference
 
     bool taskEnabled = true;  //task is allowed to run or not
     bool taskStarted = false; //task has started an execution cycle
     bool cycleStarted = false; //task has started an interval cycle
     bool taskSuspended = false; //a task is prevented from running until further activation
-    bool iterationEnded = false;  //end of an iteration set
+    bool repetitionsEnded = false;  //end of a repetition
     bool taskRunning = false; //a task is running
     bool taskRunState;  //the current execution state of a task
 
     bool inputError = false;  //if any user input parameters are wrong
     bool skipIntervalSet = false; //if skip interval was set
-    bool skipIterationSet = false;  //if skip iteration was set
+    bool skipSequenceSet = false;  //if skip sequence was set
     bool skipTimeSet = false; //if skip time was set
     
-    ptScheduler (time_ms_t interval_1); //sets the initial interval for the task
-    ptScheduler (uint8_t _mode, time_ms_t interval_1);
-    ptScheduler (uint8_t _mode, time_ms_t interval_1, time_ms_t interval_2);
-    ptScheduler (uint8_t _mode, time_ms_t* listPtr, uint8_t listLength);
+    ptScheduler (time_us_t interval_1); //sets the initial interval for the task
+    ptScheduler (uint8_t _mode, time_us_t interval_1);
+    // ptScheduler (uint8_t _mode, time_us_t interval_1, time_us_t interval_2);
+    ptScheduler (uint8_t _mode, time_us_t* listPtr, uint8_t listLength);
     ~ptScheduler();
     void reset(); //disable + enable
     void enable();  //enabling a task to run at each intervals
@@ -91,14 +95,14 @@ class ptScheduler {
     bool oneshot(); //logic for oneshot tasks
     bool spanning();  //logic for spanning tasks
     bool call();  //the task invokation call
-    bool setInterval (time_ms_t value);  //dynamically set task interval
-    bool setInterval (time_ms_t value_1, time_ms_t value_2);  //update two interval values. only for tasks instantiated with >= intervals
-    bool setIteration (int32_t value);  //no. of iterations you want to execute for each activation
+    bool setInterval (time_us_t value);  //dynamically set task interval
+    bool setInterval (time_us_t value_1, time_us_t value_2);  //update two interval values. only for tasks instantiated with >= intervals
+    bool setRepetition (int32_t value);  //no. of sequences you want to execute for each activation
     bool setSkipInterval (uint32_t value);  //intervals to wait before executing the task
-    bool setSkipIteration (uint32_t value); //iterations to wait before executing the task
-    bool setSkipTime (time_ms_t value); //time to wait before executing the task
+    bool setSkipSequence (uint32_t value); //number of sequence to wait before executing the task
+    bool setSkipTime (time_us_t value); //time to wait before executing the task
     bool setTaskMode (uint8_t mode);  //set execution mode
-    bool setSleepMode (uint8_t mode); //set what happens after an iteration is complete
+    bool setSleepMode (uint8_t mode); //set what happens after an repetition is complete
     bool isInputError();
     void printStats();  //prints all the statuses and counter to debug port
     void timeElapsed();
