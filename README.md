@@ -42,4 +42,4 @@ Complete tutorial can be found at **[CIRCUITSTATE](https://circuitstate.com/tuto
 
 ## Reference
 
-See the reference of all available functions and variables in the **[Reference](https://github.com/vishnumaiea/ptScheduler/wiki/Reference)** page.
+See the reference of all available functions and variables in the **[Reference](https://vishnumaiea.gitbook.io/ptscheduler/)** page.
