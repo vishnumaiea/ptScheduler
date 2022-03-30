@@ -36,10 +36,10 @@ void loop() {
 }
 ```
 
-## Tutorial and Documentation
+## Tutorial
 
 Complete tutorial can be found at **[CIRCUITSTATE](https://circuitstate.com/tutorials/ptscheduler-a-minimal-cooperative-task-scheduler-for-arduino/)**
 
-## Reference
+## Documentation
 
-See the reference of all available functions and variables in the **[Reference](https://vishnumaiea.gitbook.io/ptscheduler/)** page.
+See the reference of all available functions and variables in the **[Documentation](https://vishnumaiea.gitbook.io/ptscheduler/)** page.
