@@ -7,11 +7,11 @@
 // periodic tasks without using delay() or millis() routines.
 
 // Author : Vishnu Mohanan (@vishnumaiea)
-// Version : 2.1.0
+// Version : 2.1.1
 // License : MIT
 // Source : https://github.com/vishnumaiea/ptScheduler
 
-// Last modified : +05:30 20:31:15 PM 29-03-2022, Tuesday
+// Last modified : +05:30 22:42:39 PM 10-08-2022, Wednesday
 
 //=======================================================================//
 //description

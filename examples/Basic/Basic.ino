@@ -7,11 +7,11 @@
 // periodic tasks without using delay() or millis() routines.
 
 // Author : Vishnu Mohanan (@vishnumaiea)
-// Version : 2.1.0
+// Version : 2.1.1
 // License : MIT
 // Source : https://github.com/vishnumaiea/ptScheduler
 
-// Last modified : +05:30 23:27:23 PM 29-03-2022, Tuesday
+// Last modified : +05:30 23:13:46 PM 10-08-2022, Wednesday
 
 //=======================================================================//
 //description
@@ -21,8 +21,8 @@
 //specified intervals. The other two tasks, basicBlink and multiBlink
 //blinks two LEDs. The basicBlink blinks an LED every second indefinitely.
 //The multiBlink blinks the LED for three times in a burst manner. multiBlink
-//is an example of an iterated task that stops after a preset number of
-//iterations.
+//is an example of a finitely repeated task that stops after a specified number of
+//repetitions.
 
 //=======================================================================//
 //includes
@@ -30,7 +30,7 @@
 #include <ptScheduler.h>
 
 //=======================================================================//
-//defines
+//define your LED pins here
 
 #define LED1 LED_BUILTIN
 #define LED2 2
@@ -40,7 +40,7 @@
 
 //create tasks
 ptScheduler sayHello = ptScheduler(PT_FREQ_1HZ);
-ptScheduler sayName = ptScheduler(PT_FREQ_5HZ);
+ptScheduler sayName = ptScheduler(PT_TIME_3S);
 ptScheduler basicBlink = ptScheduler(PT_TIME_1S);
 ptScheduler multiBlink = ptScheduler(PT_MODE_ONESHOT, PT_TIME_100MS);
 
@@ -53,7 +53,7 @@ void setup() {
   pinMode(LED2, OUTPUT);
 
   multiBlink.setSleepMode(PT_SLEEP_SUSPEND);  //suspend mode so that we can resume the task periodically
-  multiBlink.setSequenceRepetition(6); //for three blinks, we need 6 iterations (3 OFF states, and 3 ON states)
+  multiBlink.setSequenceRepetition(6); //for three blinks, we need 6 repetitions (3 OFF states, and 3 ON states)
 
   Serial.print("\n-- ptScheduler --\n\n");
   digitalWrite(LED1, HIGH);
@@ -68,7 +68,7 @@ void loop() {
     Serial.println("Hello World");
   }
   
-  //skips first time and executed every 3 seconds
+  //executed every 3 seconds
   if (sayName.call()) {
     Serial.println("I am ptScheduler");
     multiBlink.enable();
@@ -81,6 +81,7 @@ void loop() {
   
   //task as a function
   multiBlinker();
+  
 }
 
 //=======================================================================//

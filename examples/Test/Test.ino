@@ -7,11 +7,11 @@
 // periodic tasks without using delay() or millis() routines.
 
 // Author : Vishnu Mohanan (@vishnumaiea)
-// Version : 2.1.0
+// Version : 2.1.1
 // License : MIT
 // Source : https://github.com/vishnumaiea/ptScheduler
 
-// Last modified : +05:30 23:28:04 PM 29-03-2022, Tuesday
+// Last modified : +05:30 22:42:29 PM 10-08-2022, Wednesday
 
 //=======================================================================//
 //description
@@ -39,8 +39,8 @@ time_us_t intervalArray[] = {1000000, 2000000, 3000000, 2500000, 4000000};
 ptScheduler plot = ptScheduler (PT_FREQ_20HZ); //serial plotter task
 
 // ptScheduler oneshotTask = ptScheduler(PT_MODE_OI, 1000000);
-ptScheduler oneshotTask = ptScheduler (PT_MODE_ONESHOT, intervalArray, 3); //oneshot, infinite
-ptScheduler spanningTask = ptScheduler (PT_MODE_SPANNING, intervalArray, 3);  //spanning, infinite
+ptScheduler oneshotTask = ptScheduler (PT_MODE_ONESHOT, intervalArray, 1); //oneshot, infinite
+ptScheduler spanningTask = ptScheduler (PT_MODE_SPANNING, intervalArray, 2);  //spanning, infinite
 
 uint8_t ledOn = false;  //a var to toggle the LED state
 
@@ -62,15 +62,17 @@ void setup() {
 
   //setting a repetition value to an infinite task will convert it to a finite task.
   oneshotTask.setSequenceRepetition(0);
-  spanningTask.setSequenceRepetition(0);
+  spanningTask.setSequenceRepetition(2);
 
   //when setting a skip paramter after one has already been set,
   //only the last parameter will take effect.
   oneshotTask.setSkipInterval(0);
   spanningTask.setSkipInterval(0);
 
+  spanningTask.setSleepMode(PT_SLEEP_DISABLE);
+
   //start disabled
-  oneshotTask.disable();
+  oneshotTask.suspend();
   spanningTask.disable();
 
   // delay(3000);
@@ -105,6 +107,9 @@ void oneshotFunction() {
     if (inputString == "4") {
       oneshotTask.disable();
     }
+    if (inputString == "5") {
+      oneshotTask.enable();
+    }
   }
   
   if (plot.call()) {
@@ -136,6 +141,9 @@ void spanningFunction() {
     }
     if (inputString == "4") {
       spanningTask.disable();
+    }
+    if (inputString == "5") {
+      spanningTask.enable();
     }
   }
   

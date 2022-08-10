@@ -7,11 +7,11 @@
 // periodic tasks without using delay() or millis() routines.
 
 // Author : Vishnu Mohanan (@vishnumaiea)
-// Version : 2.1.0
+// Version : 2.1.1
 // License : MIT
 // Source : https://github.com/vishnumaiea/ptScheduler
 
-// Last modified : +05:30 23:51:40 PM 29-03-2022, Tuesday
+// Last modified : +05:30 22:42:44 PM 10-08-2022, Wednesday
 
 //=======================================================================//
 
@@ -590,7 +590,10 @@ bool ptScheduler::setSequenceRepetition (int32_t value) {
       //completed. but the user will specify the number of sequenceRepetition only.
       sequenceRepetition = value;
       
-      if ((sequenceLength % 2) == 1) {
+      if (sequenceRepetition == 1) {
+        sequenceRepetitionExtended = 1;
+      }
+      else if ((sequenceRepetition % 2) == 1) {
         sequenceRepetitionExtended = uint32_t(((sequenceLength + 1) / 2) * sequenceRepetition);
         sequenceRepetitionExtended--; //we need one less, otherwise there will be one extra active state
       }

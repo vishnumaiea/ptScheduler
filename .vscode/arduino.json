@@ -1,6 +1,6 @@
 {
     "board": "arduino:sam:arduino_due_x_dbg",
-    "sketch": "examples\\Basic\\Basic.ino",
-    "port": "COM15",
+    "sketch": "examples\\Test\\Test.ino",
+    "port": "COM5",
     "programmer": "arduino:avrispmkii"
 }

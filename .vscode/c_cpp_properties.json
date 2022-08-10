@@ -53,7 +53,7 @@
             "cppStandard": "c++11",
             "defines": [
                 "F_CPU=84000000L",
-                "ARDUINO=10816",
+                "ARDUINO=10819",
                 "ARDUINO_SAM_DUE",
                 "ARDUINO_ARCH_SAM",
                 "__SAM3X8E__",

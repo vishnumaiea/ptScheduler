@@ -7,11 +7,11 @@
 // periodic tasks without using delay() or millis() routines.
 
 // Author : Vishnu Mohanan (@vishnumaiea)
-// Version : 2.1.0
+// Version : 2.1.1
 // License : MIT
 // Source : https://github.com/vishnumaiea/ptScheduler
 
-// Last modified : +05:30 23:25:48 PM 29-03-2022, Tuesday
+// Last modified : +05:30 23:13:01 PM 10-08-2022, Wednesday
 
 //=======================================================================//
 //includes
@@ -21,6 +21,7 @@
 //=======================================================================//
 //defines
 
+//change this to your desired serial port for printing the debug messages
 #define debugSerial   Serial
 
 #define PT_MODE_ONESHOT   1
@@ -51,6 +52,7 @@
 #define PT_TIME_8S      8000000
 #define PT_TIME_9S      9000000
 #define PT_TIME_10S     10000000
+#define PT_TIME_1MIN    60000000  //this line was predicted by AI
 
 //equivalent frequenceis
 #define PT_FREQ_1HZ       PT_TIME_1S
@@ -69,6 +71,7 @@
 typedef uint64_t time_ms_t;  //time in milliseconds
 typedef uint64_t time_us_t;  //time in microseconds
 
+//add your own timing functions here
 #define GET_MICROS micros
 #define GET_MILLIS millis
 
@@ -87,7 +90,7 @@ class ptScheduler {
     uint64_t suspendedIntervalCounter = 0; //how many intervals have been passed after suspending the task
     uint64_t executionCounter = 0; //how many times the task has returned true
     uint64_t sequenceRepetitionCounter = 0; //how many times the sequence has been repeated
-    
+
     uint32_t sequenceRepetition = 0;  //how many times an interval sequence has to be executed
     uint32_t sequenceRepetitionExtended = 0;  //repetitions * interval sequence length
     uint8_t taskMode = PT_MODE_ONESHOT;  //the execution mode of the task
@@ -114,7 +117,7 @@ class ptScheduler {
     bool skipIntervalSet = false; //if skip interval was set
     bool skipSequenceSet = false;  //if skip sequence was set
     bool skipTimeSet = false; //if skip time was set
-    
+
     ptScheduler (time_us_t interval_1); //sets the initial interval for the task
     ptScheduler (uint8_t _mode, time_us_t interval_1);
     ptScheduler (uint8_t _mode, time_us_t* listPtr, uint8_t listLength);

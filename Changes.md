@@ -1,19 +1,42 @@
 
 
 #
+**+05:30 10:43:12 PM 10-08-2022, Wednesday**
+
+  🆕 New version **2.1.1**
+
+#
+
+**+05:30 10:24:50 PM 02-07-2022, Saturday**
+
+  There was a bug 🪲 at the `setSequenceRepetition()` function. When the `sequenceRepetition` was 1, the `sequenceRepetitionExtended` would become 0 and thus a repeated task would run continuously. It was fixed by adding a condition to check if the `sequenceRepetition` is 1. Also I was using `sequenceLength` for the conditional check where it should have been odd checking on `sequenceRepetition` instead. Both are fixed now. FIXED ✅ [Issue #5](https://github.com/vishnumaiea/ptScheduler/issues/5) .
+
+  ```cpp
+  if (sequenceRepetition == 1) {
+    sequenceRepetitionExtended = 1;
+  }
+  else if ((sequenceRepetition % 2) == 1) {
+    sequenceRepetitionExtended = uint32_t(((sequenceLength + 1) / 2) * sequenceRepetition);
+    sequenceRepetitionExtended--; //we need one less, otherwise there will be one extra active state
+  }
+  else {
+    sequenceRepetitionExtended = uint32_t((sequenceLength * sequenceRepetition) / 2);
+  }
+  ```
+#
 
 **+05:30 11:07:41 AM 29-03-2022, Tuesday**
 
   I have renamed a few of the variables to better match their job.
 
-  There is also going to be changes in the type of tasks. We will only have ONESHOT or SPANNING tasks. Everything else about a task can be customized.
+  There is also going to be changes in the type of tasks. We will only have **ONESHOT** or **SPANNING** tasks. Everything else about a task can be customized.
 
 
 #
 
 **+05:30 05:32:14 PM 27-09-2021, Monday**
 
-  taskMode has been renamed to executionMode because it makes more sense what the parameter controls.
+  `taskMode` has been renamed to `executionMode` because it makes more sense what the parameter controls.
 
 
 #
