@@ -11,7 +11,7 @@
 // License : MIT
 // Source : https://github.com/vishnumaiea/ptScheduler
 
-// Last modified : +05:30 23:13:01 PM 10-08-2022, Wednesday
+// Last modified : +05:30 19:47:49 PM 03-12-2022, Saturday
 
 //=======================================================================//
 //includes
@@ -117,6 +117,7 @@ class ptScheduler {
     bool skipIntervalSet = false; //if skip interval was set
     bool skipSequenceSet = false;  //if skip sequence was set
     bool skipTimeSet = false; //if skip time was set
+    bool toClearExecutionCounter = false; // if execution counter has to be cleared
 
     ptScheduler (time_us_t interval_1); //sets the initial interval for the task
     ptScheduler (uint8_t _mode, time_us_t interval_1);
