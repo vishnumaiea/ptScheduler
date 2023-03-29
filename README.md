@@ -19,21 +19,21 @@ Here is the basic `Hello World` example.
 ```cpp
 #include "ptScheduler.h"
 
-//create tasks
-ptScheduler sayHello = ptScheduler(1000000); //time in microseconds
+// Create tasks
+ptScheduler sayHello = ptScheduler (PT_TIME_1S); //time in microseconds
 
-//setup function runs once
+// Setup function runs once
 void setup() {
-  Serial.begin(9600);
+  Serial.begin (9600);
 }
 
-//infinite loop
+// Infinite loop
 void loop() {
-  if (sayHello.call()) {  //executed every second
-    Serial.println("Hello World");
+  if (sayHello.call()) {  // Executed every second
+    Serial.println ("Hello World");
   }
 
-  //add other tasks and non-blocking code here
+  // Add other tasks and non-blocking code here
 }
 ```
 

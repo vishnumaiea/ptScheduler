@@ -1,4 +1,9 @@
 
+#
+**+05:30 04:16:06 PM 29-03-2023, Wednesday**
+
+  * Updated docs.
+  * 🆕 New version **2.1.3** 🎉
 
 #
 **+05:30 03:57:49 PM 29-03-2023, Wednesday**

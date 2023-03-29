@@ -6,42 +6,75 @@
 # Datatypes (KEYWORD1)
 #######################################
 
-ptScheduler	KEYWORD1
+ptScheduler KEYWORD1
 time_ms_t   KEYWORD1
+time_us_t   KEYWORD1
 
 #######################################
 # Methods and Functions (KEYWORD2)
 #######################################
 
-reset   KEYWORD2
-enable    KEYWORD2
-disable   KEYWORD2
-suspend   KEYWORD2
-resume    KEYWORD2
-call    KEYWORD2
-setInterval   KEYWORD2
-setInterval   KEYWORD2
-setIteration    KEYWORD2
-setSkipInterval   KEYWORD2
-setSkipIteration    KEYWORD2
-setSkipTime   KEYWORD2
-setTaskMode   KEYWORD2
-setSleepMode    KEYWORD2
-isInputError    KEYWORD2
-printStats    KEYWORD2
+reset                   KEYWORD2
+enable                  KEYWORD2
+disable                 KEYWORD2
+suspend                 KEYWORD2
+resume                  KEYWORD2
+oneshot                 KEYWORD2
+spanning                KEYWORD2
+call                    KEYWORD2
+setInterval             KEYWORD2
+setSequenceRepetition   KEYWORD2
+setSkipInterval         KEYWORD2
+setSkipSequence         KEYWORD2
+setSkipTime             KEYWORD2
+setTaskMode             KEYWORD2
+setSleepMode            KEYWORD2
+isInputError            KEYWORD2
+printStats              KEYWORD2
+getTimeElapsed          KEYWORD2
 
 ######################################
 # Constants (LITERAL1)
 #######################################
 
-PT_MODE_EPO   LITERAL1
-PT_MODE_EIO   LITERAL1
-PT_MODE_UPO   LITERAL1
-PT_MODE_UIO   LITERAL1
-PT_MODE_EPS   LITERAL1
-PT_MODE_EIS   LITERAL1
-PT_MODE_UPS   LITERAL1
-PT_MODE_UIS   LITERAL1
+PT_MODE_ONESHOT   LITERAL1
+PT_MODE_SPANNING  LITERAL1
 
-PT_SLEEP_DISABLE    LITERAL1
-PT_SLEEP_SUSPEND    LITERAL1
+PT_SLEEP_DISABLE  LITERAL1
+PT_SLEEP_SUSPEND  LITERAL1
+
+PT_MS_MULTIPLIER  LITERAL1
+
+PT_TIME_1MS       LITERAL1
+PT_TIME_2MS       LITERAL1
+PT_TIME_5MS       LITERAL1
+PT_TIME_10MS      LITERAL1
+PT_TIME_20MS      LITERAL1
+PT_TIME_50MS      LITERAL1
+PT_TIME_100MS     LITERAL1
+PT_TIME_200MS     LITERAL1
+PT_TIME_500MS     LITERAL1
+PT_TIME_1S        LITERAL1
+PT_TIME_2S        LITERAL1
+PT_TIME_3S        LITERAL1
+PT_TIME_4S        LITERAL1
+PT_TIME_5S        LITERAL1
+PT_TIME_6S        LITERAL1
+PT_TIME_7S        LITERAL1
+PT_TIME_8S        LITERAL1
+PT_TIME_9S        LITERAL1
+PT_TIME_10S       LITERAL1
+PT_TIME_1MIN      LITERAL1
+
+PT_FREQ_1HZ       LITERAL1
+PT_FREQ_2HZ       LITERAL1
+PT_FREQ_5HZ       LITERAL1
+PT_FREQ_10HZ      LITERAL1
+PT_FREQ_20HZ      LITERAL1
+PT_FREQ_50HZ      LITERAL1
+PT_FREQ_100HZ     LITERAL1
+PT_FREQ_200HZ     LITERAL1
+PT_FREQ_500HZ     LITERAL1
+PT_FREQ_1KHZ      LITERAL1
+
+PT_TIME_DEFAULT   LITERAL1
