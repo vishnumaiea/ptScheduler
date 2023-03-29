@@ -1,6 +1,13 @@
 
 
 #
+**+05:30 03:57:49 PM 29-03-2023, Wednesday**
+
+  * Added Doxygen-style descriptions.
+  * Added more comments.
+  * 🆕 New version **2.1.2** 🎉
+
+#
 **+05:30 08:09:52 PM 03-12-2022, Saturday**
 
   * Added new variable `toClearExecutionCounter` to control whether or not to reset the `executionCounter` when a task is suspended automatically or manually. Both behaviors may be useful in some cases. The default value is `false`.
@@ -8,7 +15,7 @@
 #
 **+05:30 10:43:12 PM 10-08-2022, Wednesday**
 
-  🆕 New version **2.1.1**
+  * 🆕 New version **2.1.1**
 
 #
 

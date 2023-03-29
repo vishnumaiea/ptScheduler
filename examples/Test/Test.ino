@@ -1,50 +1,46 @@
 
 //=======================================================================//
-
-// --- Pretty tiny Scheduler ---
-
-// Pretty tiny Scheduler is an Arduino library for writing non-blocking
-// periodic tasks without using delay() or millis() routines.
-
-// Author : Vishnu Mohanan (@vishnumaiea)
-// Version : 2.1.1
-// License : MIT
-// Source : https://github.com/vishnumaiea/ptScheduler
-
-// Last modified : +05:30 20:09:21 PM 03-12-2022, Saturday
-
+/**
+ * @file Test.ino
+ * @author Vishnu Mohanan (@vishnumaiea)
+ * @brief "Pretty tiny Scheduler" is an Arduino library for writing non-blocking
+ * periodic tasks without using delay() or millis() routines.
+ * 
+ * This sketch is used to test the functionalities of ptScheduler.
+ * 
+ * @version 2.1.2
+ * @link https://github.com/vishnumaiea/ptScheduler
+ * @date Last modified : +05:30 16:03:50 PM 29-03-2023, Wednesday
+ * @copyright License: MIT
+ * 
+ */
 //=======================================================================//
-//description
-
-//This is the sketch I use to test the library.
-
-//=======================================================================//
-//includes
+// Includes
 
 #include <ptScheduler.h>
 
 //=======================================================================//
-//defines
+// Defines
 
 #define LED1 LED_BUILTIN
 #define debugSerial Serial
 
 //=======================================================================//
-//globals
+// Globals
 
 time_us_t intervalArray [] = {1000000, 2000000, 3000000, 2500000, 4000000}; 
 
-// create tasks
-ptScheduler plot = ptScheduler (PT_FREQ_20HZ); //serial plotter task
+// Create tasks
+ptScheduler plot = ptScheduler (PT_FREQ_20HZ); // serial plotter task
 
 // ptScheduler oneshotTask = ptScheduler(PT_MODE_OI, 1000000);
-ptScheduler oneshotTask = ptScheduler (PT_MODE_ONESHOT, intervalArray, 1); //oneshot, infinite
-ptScheduler spanningTask = ptScheduler (PT_MODE_SPANNING, intervalArray, 2);  //spanning, infinite
+ptScheduler oneshotTask = ptScheduler (PT_MODE_ONESHOT, intervalArray, 1); // oneshot, infinite
+ptScheduler spanningTask = ptScheduler (PT_MODE_SPANNING, intervalArray, 2);  // spanning, infinite
 
 uint8_t ledOn = false;  //a var to toggle the LED state
 
 //=======================================================================//
-// forward declarations
+// Forward declarations
 
 void oneshotFunction();
 void spanningFunction();
