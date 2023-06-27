@@ -1,5 +1,5 @@
 
-//=======================================================================//
+//==============================================================================//
 /**
  * @file ptScheduler.h
  * @author Vishnu Mohanan (@vishnumaiea)
@@ -9,18 +9,18 @@
  * Read the header file for a better understanding of how this library is
  * organized. I have added plenty of comments to help you with it.
  * 
- * @version 2.1.3
+ * @version 2.2.0
  * @link https://github.com/vishnumaiea/ptScheduler
- * @date Last modified : +05:30 16:17:08 PM 29-03-2023, Wednesday
+ * @date Last modified : +05:30 09:53:34 AM 27-06-2023, Tuesday
  * @copyright License: MIT
  * 
  */
-//=======================================================================//
+//==============================================================================//
 // Includes
 
 #include <Arduino.h>
 
-//=======================================================================//
+//==============================================================================//
 // Defines
 
 // Change this to your desired serial port for printing the debug messages
@@ -77,7 +77,7 @@ typedef uint64_t time_us_t;  // Time in microseconds
 #define  GET_MICROS         micros
 #define  GET_MILLIS         millis
 
-//=======================================================================//
+//==============================================================================//
 //main class
 
 class ptScheduler {
@@ -128,8 +128,10 @@ class ptScheduler {
     ~ptScheduler();
     void reset();
     void enable();
+    bool isEnabled();
     void disable();
     void suspend();
+    bool isSuspended();
     void resume();
     bool oneshot();
     bool spanning();
@@ -146,4 +148,4 @@ class ptScheduler {
     void getTimeElapsed();
 };
 
-//=======================================================================//
+//==============================================================================//

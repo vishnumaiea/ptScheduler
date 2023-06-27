@@ -1,5 +1,5 @@
 
-//=======================================================================//
+//==============================================================================//
 /**
  * @file ptScheduler.cpp
  * @author Vishnu Mohanan (@vishnumaiea)
@@ -9,18 +9,18 @@
  * Read the header file for a better understanding of how this library is
  * organized. I have added plenty of comments to help you with it.
  * 
- * @version 2.1.3
+ * @version 2.2.0
  * @link https://github.com/vishnumaiea/ptScheduler
- * @date Last modified : +05:30 16:17:11 PM 29-03-2023, Wednesday
+ * @date Last modified : +05:30 09:53:39 AM 27-06-2023, Tuesday
  * @copyright License: MIT
  * 
  */
-//=======================================================================//
+//==============================================================================//
 // Includes
 
 #include "ptScheduler.h"
 
-//=======================================================================//
+//==============================================================================//
 // Constructors
 
 /**
@@ -42,7 +42,7 @@ ptScheduler:: ptScheduler (time_us_t interval_1) {
   // sleepMode = PT_SLEEP_DISABLE;
 }
 
-//----------------------------------------------------------------------//
+//----------------------------------------------------------------------------//
 /**
  * @brief Creates the basic type of task. Accepts a single interval in microseconds
  * and the working mode. Fallback mode is ONESHOT, in case of input error.
@@ -74,7 +74,7 @@ ptScheduler:: ptScheduler (uint8_t mode, time_us_t interval_1) {
   }
 }
 
-//----------------------------------------------------------------------//
+//----------------------------------------------------------------------------//
 /**
  * @brief This accepts a list of intervals. You have to create an array of
  * intervals in the global scope and pass the pointer to this along with the
@@ -116,7 +116,7 @@ ptScheduler:: ptScheduler (uint8_t mode, time_us_t* sequencePtr, uint8_t sequenc
   }
 }
 
-//=======================================================================//
+//==============================================================================//
 /**
  * @brief Does nothing for now.
  * 
@@ -126,7 +126,7 @@ ptScheduler:: ~ptScheduler() {
   
 }
 
-//=======================================================================//
+//==============================================================================//
 /**
  * @brief Calculates the time elapsed from the entry time, in microseconds.
  * The value is stored in the elapsedTime variable.
@@ -146,7 +146,7 @@ void ptScheduler:: getTimeElapsed() {
   prevTimeDelta = timeDelta;
 }
 
-//=======================================================================//
+//==============================================================================//
 /**
  * @brief Allows you to change modes dynamically. Returns true if the mode is
  * valid. inputError is set to true in case of input error. Fallback mode is
@@ -173,7 +173,7 @@ bool ptScheduler:: setTaskMode (uint8_t mode) {
   return false;
 }
 
-//=======================================================================//
+//==============================================================================//
 /**
  * @brief Sleep is the event when a task finishes a number of finite
  * sequence repetitions. A task can end the sequence repetition in two ways,
@@ -209,7 +209,7 @@ bool ptScheduler:: setSleepMode (uint8_t mode) {
   }
 }
 
-//=======================================================================//
+//==============================================================================//
 /**
  * @brief Determines whether a task should run or not. Enclose this function
  * call in any conditional clause to run the code block. Do not use any other
@@ -243,7 +243,7 @@ bool ptScheduler:: call() {
   return false;
 }
 
-//=======================================================================//
+//==============================================================================//
 /**
  * @brief Implements the SPANNING task logic. The return state of a spanning
  * task will persist until the ongoing interval is ended. If you set the state
@@ -383,7 +383,7 @@ bool ptScheduler:: spanning() {
   }
 }
 
-//=======================================================================//
+//==============================================================================//
 /**
  * @brief Implements the logic of ONESHOT tasks. ONESHOT returns true momentarily during the
  * rising edge of an interval.
@@ -504,7 +504,7 @@ bool ptScheduler:: oneshot() {
   return false;
 }
 
-//=======================================================================//
+//==============================================================================//
 /**
  * @brief Prints the state variables and counters of the task.
  * Unfortunately, print() does not accept 64-bit values.
@@ -574,7 +574,7 @@ void ptScheduler:: printStats() {
   debugSerial.println();
 }
 
-//=======================================================================//
+//==============================================================================//
 /**
  * @brief Activates or enables a task. Only active tasks are executed
  * regardless of their turn for execution.
@@ -584,7 +584,18 @@ void ptScheduler:: enable() {
   taskEnabled = true;
 }
 
-//=======================================================================//
+//==============================================================================//
+/**
+ * @brief Returns the task enable state.
+ * 
+ * @return true Task is enabled.
+ * @return false Task is disabled.
+ */
+bool ptScheduler:: isEnabled() {
+  return taskEnabled;
+}
+
+//==============================================================================//
 /**
  * @brief Suspends a task. The task will not be executed until it is resumed.
  * suspendedIntervalCounter will continue to increment in this mode, which you can
@@ -602,7 +613,18 @@ void ptScheduler:: suspend() {
   }
 }
 
-//=======================================================================//
+//==============================================================================//
+/**
+ * @brief Returns the suspended state of the task.
+ * 
+ * @return true Task is suspended.
+ * @return false Task is not suspended.
+ */
+bool ptScheduler:: isSuspended() {
+  return taskSuspended;
+}
+
+//==============================================================================//
 /**
  * @brief Resumes a task from suspended state. The task will resume from where it
  * was suspended.
@@ -613,7 +635,7 @@ void ptScheduler:: resume() {
   // intervalCounter = 0;
 }
 
-//=======================================================================//
+//==============================================================================//
 /**
  * @brief Disables a task. This will reset all values to their default states.
  * All user specified values will be preserved, which includes the mode, skip
@@ -642,7 +664,7 @@ void ptScheduler:: disable() {
   sequenceIndex = 0;
 }
 
-//=======================================================================//
+//==============================================================================//
 /**
  * @brief A reset reinitializes the task.
  * 
@@ -652,7 +674,7 @@ void ptScheduler:: reset() {
   enable();
 }
 
-//=======================================================================//
+//==============================================================================//
 /**
  * @brief Let's you specify the number of times the interval sequence has to be
  * executed. After the specified number of repetitions, the task will end and sleep
@@ -705,7 +727,7 @@ bool ptScheduler:: setSequenceRepetition (int32_t value) {
   return false;
 }
 
-//=======================================================================//
+//==============================================================================//
 /**
  * @brief Set the first interval value of an interval sequence.
  * 
@@ -724,7 +746,7 @@ bool ptScheduler:: setInterval (time_us_t value) {
   }
 }
 
-//=======================================================================//
+//==============================================================================//
 /**
  * @brief Let's you set the skip duration in terms of number of intervals to skip.
  * The number of intervals to skip can also be greater than the number of intervals
@@ -764,7 +786,7 @@ bool ptScheduler:: setSkipInterval (uint32_t value) {
   return false;
 }
 
-//=======================================================================//
+//==============================================================================//
 /**
  * @brief Let's you specify the skip duration in terms of number of sequences
  * to skip. The actual skip duration will be calculated as a multiple of the
@@ -797,7 +819,7 @@ bool ptScheduler:: setSkipSequence (uint32_t value) {
   return false;
 }
 
-//=======================================================================//
+//==============================================================================//
 /**
  * @brief Sets the skip duration in terms of time in microseconds.
  * 
@@ -819,7 +841,7 @@ bool ptScheduler:: setSkipTime (time_us_t value) {
   return false;
 }
 
-//=======================================================================//
+//==============================================================================//
 /**
  * @brief Checks if there was any input error. Calling this function will
  * also reset the flag.
@@ -835,4 +857,4 @@ bool ptScheduler:: isInputError() {
   return false;
 }
 
-//=======================================================================//
+//==============================================================================//

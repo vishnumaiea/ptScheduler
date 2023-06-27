@@ -1,5 +1,10 @@
 
 #
+**+05:30 09:52:45 AM 27-06-2023, Tuesday**
+
+  * Added new functions - `isEnabled()` and `isSuspended()`.
+  * 🆕 New version **2.2.0** 🎉
+#
 **+05:30 04:16:06 PM 29-03-2023, Wednesday**
 
   * Updated docs.

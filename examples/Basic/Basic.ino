@@ -14,9 +14,9 @@
  * is an example of a finitely repeated task that stops after a specified number of
  * repetitions.
 
- * @version 2.1.3
+ * @version 2.2.0
  * @link https://github.com/vishnumaiea/ptScheduler
- * @date Last modified : +05:30 16:17:17 PM 29-03-2023, Wednesday
+ * @date Last modified : +05:30 09:53:51 AM 27-06-2023, Tuesday
  * 
  * @copyright License: MIT
  * 
